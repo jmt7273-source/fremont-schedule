@@ -1,17 +1,8 @@
 const progressBar = document.getElementById("progress-bar");
-const messageEl = document.getElementById("message");
-const countdownEl = document.getElementById("countdown");
+const barText = document.getElementById("bar-text");
 const periodInfo = document.getElementById("period-info");
 const scheduleSelect = document.getElementById("scheduleSelect");
-
-// Create and insert a live clock element
-const clockEl = document.createElement("div");
-clockEl.id = "live-clock";
-clockEl.style.fontSize = "1.3em";
-clockEl.style.marginBottom = "10px";
-clockEl.style.color = "#eee";
-clockEl.style.textShadow = "1px 1px 2px #000";
-document.querySelector(".timer-container").insertBefore(clockEl, document.querySelector(".progress-container"));
+const liveClock = document.getElementById("live-clock");
 
 const schedules = {
   regular: [
@@ -52,12 +43,11 @@ const schedules = {
   ],
 };
 
-// Automatically select Tuesday PD if it's Tuesday
+// Auto select Tuesday schedule
 if (new Date().getDay() === 2) {
   scheduleSelect.value = "tuesday";
 }
 
-// Utility to parse time strings
 function parseTime(str) {
   const [h, m] = str.split(":").map(Number);
   const d = new Date();
@@ -65,7 +55,6 @@ function parseTime(str) {
   return d;
 }
 
-// Determine current or passing period
 function getCurrentPeriod(schedule) {
   const now = new Date();
   for (let i = 0; i < schedule.length; i++) {
@@ -77,44 +66,35 @@ function getCurrentPeriod(schedule) {
       return { name, startTime, endTime };
     }
 
-    // Passing period logic
     if (i < schedule.length - 1 && now > endTime && now < parseTime(schedule[i + 1][1])) {
       return {
         name: "Passing Period",
         startTime: endTime,
-        endTime: parseTime(schedule[i + 1][1])
+        endTime: parseTime(schedule[i + 1][1]),
       };
     }
   }
   return null;
 }
 
-// Update the live clock
-function updateClock() {
-  const now = new Date();
-  clockEl.textContent = "Current Time: " + now.toLocaleTimeString();
-}
-
-// Main timer update
 function updateTimer() {
   const schedule = schedules[scheduleSelect.value];
   const now = new Date();
   const current = getCurrentPeriod(schedule);
 
-  updateClock();
+  // Update live clock
+  liveClock.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
-  // After last period → School’s Out!
   if (!current) {
     progressBar.style.width = "100%";
     progressBar.style.backgroundColor = "gray";
-    countdownEl.textContent = "";
+    barText.textContent = "School’s Out!";
+    barText.classList.add("flash");
     periodInfo.textContent = "";
-    messageEl.textContent = "School’s Out!";
-    messageEl.classList.add("flash");
     return;
   }
 
-  messageEl.classList.remove("flash");
+  barText.classList.remove("flash");
 
   const total = current.endTime - current.startTime;
   const remaining = current.endTime - now;
@@ -123,23 +103,20 @@ function updateTimer() {
 
   const minutesLeft = Math.floor(remaining / 60000);
   const secondsLeft = Math.floor((remaining % 60000) / 1000);
-  countdownEl.textContent = `${minutesLeft}m ${secondsLeft}s left`;
 
   periodInfo.textContent = current.name;
 
   const minsFromStart = (now - current.startTime) / 60000;
   const minsToEnd = remaining / 60000;
 
-  // Red zone logic
   if (minsFromStart <= 15 || minsToEnd <= 15) {
     progressBar.style.backgroundColor = "red";
-    messageEl.textContent = "No restroom or passes right now!";
+    barText.textContent = "No Bathroom or Passes • " + `${minutesLeft}m ${secondsLeft}s left`;
   } else {
     progressBar.style.backgroundColor = "green";
-    messageEl.textContent = "";
+    barText.textContent = `${minutesLeft}m ${secondsLeft}s left`;
   }
 }
 
-// Run timer & clock updates
 setInterval(updateTimer, 1000);
 updateTimer();

@@ -1,90 +1,79 @@
 body {
-  background-color: #800020; /* Fremont Burgundy */
+  background-color: #800020; /* Fremont burgundy */
   color: white;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Segoe UI', sans-serif;
   text-align: center;
   margin: 0;
   padding: 0;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .timer-container {
-  width: 90%;
-  max-width: 900px;
-  background-color: rgba(255, 255, 255, 0.08);
-  padding: 25px;
-  border-radius: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  margin-top: 40px;
-  margin-bottom: 20px;
+  width: 75%;
+  margin: 1em auto;
+  padding: 0.5em;
 }
 
-h1 {
+.clock {
+  font-size: 1.1em;
+  margin-bottom: 8px;
   color: white;
-  margin-bottom: 10px;
-}
-
-.schedule-switch {
-  margin: 10px 0 20px 0;
 }
 
 .progress-container {
   width: 100%;
-  background-color: #ccc;
+  height: 40px;
+  background-color: #ddd;
   border-radius: 20px;
   overflow: hidden;
-  margin: 30px 0 10px 0;
-  height: 40px;
+  margin-bottom: 10px;
+  position: relative;
 }
 
 #progress-bar {
   height: 100%;
-  width: 0%;
+  width: 0;
   background-color: green;
-  transition: width 0.5s ease, background-color 1s ease;
+  border-radius: 20px;
+  position: relative;
+  transition: width 0.5s linear, background-color 0.5s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-#message {
+#bar-text {
   font-weight: bold;
-  color: #ffcccc;
-  margin-top: 10px;
-  font-size: 1.2em;
-  text-shadow: 1px 1px 2px #000;
+  color: white;
+  font-size: 1em;
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
 }
 
 #period-info {
-  margin: 20px 0 10px;
-  color: #ddd;
-  font-size: 1.5em;
+  font-size: 1.3em;
+  font-weight: bold;
+  margin-top: 5px;
 }
 
-#countdown {
-  font-size: 2em;
-  color: white;
+#scheduleSelect-container {
+  margin-top: 10px;
 }
 
-/* Canva embed area */
-.canva-container {
-  width: 95%;
-  max-width: 1200px;
-  margin-bottom: 40px;
+select {
+  font-size: 1em;
+  border-radius: 6px;
+  border: none;
+  padding: 4px 8px;
 }
 
-/* Flashing animation for School's Out */
 .flash {
-  animation: flash 1s infinite alternate;
+  animation: flash 1s infinite;
 }
 
 @keyframes flash {
-  from { color: white; opacity: 1; }
-  to { color: #ffcccc; opacity: 0.4; }
-}
-
-@media (max-width: 600px) {
-  #countdown {
-    font-size: 1.4em;
-  }
+  0% { color: white; }
+  50% { color: yellow; }
+  100% { color: white; }
 }
