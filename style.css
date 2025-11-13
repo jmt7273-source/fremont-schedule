@@ -6,7 +6,9 @@ body {
   margin: 0;
   padding: 0;
   height: 100vh;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
   position: relative;
 }
 
@@ -16,10 +18,8 @@ body {
   left: 50%;
   width: 60%;
   max-width: 600px;
-  opacity: 0.08;
+  opacity: 0;
   transform: translate(-50%, -50%);
-  background: url('FREMONT_SPIRIT_LOGO_MAIN.png') no-repeat center;
-  background-size: contain;
   z-index: 0;
   pointer-events: none;
 }
@@ -27,13 +27,15 @@ body {
 .timer-container {
   position: relative;
   z-index: 2;
-  width: 90%;
-  max-width: 900px;
-  margin: 50px auto;
+  width: 75%;        /* Set width to 75% */
+  max-width: 900px;  /* Keep max-width */
+  margin: 50px auto 0 auto; /* Auto horizontal margin for centering */
   background-color: rgba(255, 255, 255, 0.05);
-  padding: 30px;
+  padding: 15px 30px; /* Keep reduced vertical padding */
   border-radius: 20px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 h1 {
@@ -58,7 +60,7 @@ h1 {
   height: 100%;
   width: 0%;
   background-color: green;
-  transition: width 0.5s ease, background-color 1s ease; /* smoother transitions */
+  transition: width 0.5s ease, background-color 1s ease;
 }
 
 #message {
@@ -78,6 +80,25 @@ h1 {
 #countdown {
   font-size: 2em;
   color: white;
+}
+
+/* Canva Embed Flex Fill */
+.canva-embed {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  min-height: 0;
+}
+
+.canva-embed > div {
+  width: 100%;
+  height: 100%;
+}
+
+.canva-embed iframe {
+  width: 100%;
+  height: 100%;
 }
 
 /* Flashing animation for School's Out */

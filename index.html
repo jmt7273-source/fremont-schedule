@@ -2,18 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fremont Pathfinders Timer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pathfinders</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="background-logo"></div>
-
+  
   <div class="timer-container">
-    <h1>Fremont Pathfinders Timer</h1>
-
+    <h1 id="welcome-message">Welcome Pathfinders</h1>
+    <div id="current-date" style="margin-bottom: 20px; font-size: 1.2em; color: #ddd;"></div>
     <div class="schedule-switch">
-      <label for="scheduleSelect">Schedule:</label>
+      <label for="scheduleSelect">Schedule</label>
       <select id="scheduleSelect">
         <option value="regular">Regular</option>
         <option value="tuesday">Tuesday PD</option>
@@ -21,29 +21,31 @@
         <option value="shortened">Shortened Day</option>
       </select>
     </div>
-
     <div class="progress-container">
       <div id="progress-bar"></div>
     </div>
-
     <div id="message"></div>
     <h2 id="period-info"></h2>
     <div id="countdown"></div>
   </div>
 
+  <!-- Canva Slide Embed with explicit height -->
+  <div class="canva-embed">
+    <div style="position: relative; width: 100%; height: 600px; padding-top: 0; padding-bottom: 0;
+        box-shadow: 0 2px 8px 0 rgba(63,69,81,0.16); margin-top: 1.6em; margin-bottom: 0.9em;
+        overflow: hidden; border-radius: 8px; will-change: transform;">
+      <iframe loading="lazy" style="width: 100%; height: 600px; border: none; padding: 0; margin: 0;"
+        src="https://www.canva.com/design/DAG3qBJZpsg/dopVAPMQ8xb9Lr0X0GjHzw/view?embed" 
+        allowfullscreen="allowfullscreen" allow="fullscreen">
+      </iframe>
+    </div>
+
   <script src="script.js"></script>
-
-<!-- Existing website code above -->
-
-<!-- Canva Presentation, fullscreen at bottom -->
-<div style="position:fixed; bottom:0; left:0; width:100%; height:100vh; z-index:9999;">
-  <iframe loading="lazy" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; border: none; padding: 0; margin: 0;"
-    src="https://www.canva.com/design/DAG3qBJZpsg/dopVAPMQ8xb9Lr0X0GjHzw/view?embed"
-    allowfullscreen="allowfullscreen" allow="fullscreen">
-  </iframe>
-</div>
-<!-- Attribution link below, if desired -->
-<a href="https://www.canva.com/design/DAG3qBJZpsg/dopVAPMQ8xb9Lr0X0GjHzw/view?utm_content=DAG3qBJZpsg&amp;utm_campaign=designshare&amp;utm_medium=embeds&amp;utm_source=link"
-   target="_blank" rel="noopener">Week 2 Agendas - Part Time Indian</a> by JOSE TORRES
+  <script>
+    // Display current date below the welcome message
+    const currentDateElement = document.getElementById('current-date');
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    currentDateElement.textContent = new Date().toLocaleDateString(undefined, options);
+  </script>
 </body>
 </html>

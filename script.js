@@ -44,72 +44,71 @@ const schedules = {
 };
 
 // Auto-select Tuesday PD on Tuesdays
-if (new Date().getDay() === 2) {
-  scheduleSelect.value = "tuesday";
-}
-
-function parseTime(str) {
-  const [h, m] = str.split(":").map(Number);
-  const d = new Date();
-  d.setHours(h, m, 0, 0);
-  return d;
-}
-
-function getCurrentPeriod(schedule) {
-  const now = new Date();
-  for (let i = 0; i < schedule.length; i++) {
-    const [name, start, end] = schedule[i];
-    const startTime = parseTime(start);
-    const endTime = parseTime(end);
-    if (now >= startTime && now <= endTime) return { name, startTime, endTime };
-    if (i < schedule.length - 1 && now > endTime && now < parseTime(schedule[i + 1][1])) {
-      return { name: "Passing Period", startTime: endTime, endTime: parseTime(schedule[i + 1][1]) };
-    }
+window.onload = () => {
+  if (new Date().getDay() === 2) {
+    scheduleSelect.value = "tuesday";
   }
-  return null;
-}
+
+  updateTimer();
+  setInterval(updateTimer, 1000);
+};
+
+scheduleSelect.addEventListener("change", () => {
+  updateTimer();
+});
 
 function updateTimer() {
-  const schedule = schedules[scheduleSelect.value];
-  const now = new Date();
-  const current = getCurrentPeriod(schedule);
+  countdownEl.textContent = "Timer script running successfully!"; // Debug line to confirm script runs
 
-  if (!current) {
-    progressBar.style.width = "100%";
-    progressBar.style.backgroundColor = "gray";
+  const schedule = schedules[scheduleSelect.value];
+
+  const now = new Date();
+  let currentPeriodIndex = -1;
+  let periodStart = null;
+  let periodEnd = null;
+
+  for (let i = 0; i < schedule.length; i++) {
+    const period = schedule[i];
+    const startTime = parseTime(period[1]);
+    const endTime = parseTime(period[2]);
+
+    if (now >= startTime && now < endTime) {
+      currentPeriodIndex = i;
+      periodStart = startTime;
+      periodEnd = endTime;
+      break;
+    }
+  }
+
+  if (currentPeriodIndex === -1) {
+    messageEl.textContent = "No active period";
+    progressBar.style.width = "0%";
     countdownEl.textContent = "";
     periodInfo.textContent = "";
-    messageEl.textContent = "School's Out!";
-    messageEl.classList.add("flash");
     return;
   }
 
-  messageEl.classList.remove("flash");
+  const totalPeriodSeconds = (periodEnd - periodStart) / 1000;
+  const elapsedSeconds = (now - periodStart) / 1000;
+  const remainingSeconds = totalPeriodSeconds - elapsedSeconds;
 
-  const total = current.endTime - current.startTime;
-  const remaining = current.endTime - now;
-  const percent = 100 - (remaining / total) * 100;
+  progressBar.style.width = ((elapsedSeconds / totalPeriodSeconds) * 100).toFixed(2) + "%";
 
-  progressBar.style.width = `${percent}%`;
+  messageEl.textContent = "Time Remaining in " + schedule[currentPeriodIndex][0] + ":";
 
-  const minutesLeft = Math.floor(remaining / 60000);
-  const secondsLeft = Math.floor((remaining % 60000) / 1000);
-  countdownEl.textContent = `${minutesLeft}m ${secondsLeft}s left`;
+  countdownEl.textContent = formatTime(remainingSeconds);
 
-  periodInfo.textContent = current.name;
-
-  const minsFromStart = (now - current.startTime) / 60000;
-  const minsToEnd = remaining / 60000;
-
-  // Smooth color fade between green and red
-  if (minsFromStart <= 15 || minsToEnd <= 15) {
-    progressBar.style.backgroundColor = "red";
-    messageEl.textContent = "No restroom or passes right now!";
-  } else {
-    progressBar.style.backgroundColor = "green";
-    messageEl.textContent = "";
-  }
+  periodInfo.textContent = schedule[currentPeriodIndex][0];
 }
 
-setInterval(updateTimer, 1000);
-updateTimer();
+function parseTime(timeString) {
+  const now = new Date();
+  const [hours, minutes] = timeString.split(":").map(Number);
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+}
+
+function formatTime(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${minutes}:${secs.toString().padStart(2, "0")}`;
+}
