@@ -7,35 +7,36 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="timer-container">
-    <div class="clock" id="live-clock"></div>
-    
-    <div class="progress-container">
-      <div id="progress-bar">
-        <span id="bar-text"></span>
+  <div class="main-container">
+    <div class="timer-container">
+      <div class="clock" id="live-clock"></div>
+
+      <div class="progress-container">
+        <div id="progress-bar">
+          <span id="bar-text"></span>
+        </div>
+      </div>
+
+      <div id="period-info"></div>
+
+      <div id="scheduleSelect-container">
+        <label for="scheduleSelect">Schedule: </label>
+        <select id="scheduleSelect">
+          <option value="regular">Regular Day</option>
+          <option value="tuesday">Tuesday PD</option>
+          <option value="minimum">Minimum Day</option>
+          <option value="shortened">Shortened Day</option>
+        </select>
       </div>
     </div>
 
-    <div id="period-info"></div>
-
-    <div id="scheduleSelect-container">
-      <label for="scheduleSelect">Schedule: </label>
-      <select id="scheduleSelect">
-        <option value="regular">Regular Day</option>
-        <option value="tuesday">Tuesday PD</option>
-        <option value="minimum">Minimum Day</option>
-        <option value="shortened">Shortened Day</option>
-      </select>
+    <div class="canva-embed-wrapper">
+      <iframe
+        loading="lazy"
+        src="https://www.canva.com/design/DAG4mPMfK-c/boRs9fOoR8SB-jmYFFAsFQ/view?embed"
+        allowfullscreen="allowfullscreen">
+      </iframe>
     </div>
-  </div>
-
-  <!-- Canva Embed -->
-  <div class="canva-embed-wrapper">
-    <iframe 
-      loading="lazy"
-      src="https://www.canva.com/design/DAG4mPMfK-c/boRs9fOoR8SB-jmYFFAsFQ/view?embed"
-      allowfullscreen="allowfullscreen">
-    </iframe>
   </div>
 
   <script src="script.js"></script>

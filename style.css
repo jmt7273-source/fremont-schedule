@@ -1,34 +1,49 @@
-body {
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
   background-color: #800020; /* Fremont Burgundy */
   color: white;
   font-family: 'Segoe UI', sans-serif;
-  text-align: center;
-  margin: 0;
-  padding: 0;
+  overflow: hidden;
+}
+
+.main-container {
   display: flex;
   flex-direction: column;
+  height: 100vh;
   align-items: center;
 }
 
+/* TIMER AREA */
 .timer-container {
-  width: 75%;
-  max-width: 900px;
-  margin-top: 10px;
+  width: 70%;
+  max-width: 850px;
+  flex-shrink: 0;
+  padding: 8px 0 6px;
+  text-align: center;
+}
+
+/* Smaller on laptops or smaller screens */
+@media (max-width: 1024px) {
+  .timer-container {
+    width: 85%;
+    padding: 5px 0;
+  }
 }
 
 .clock {
-  font-size: 1.1em;
-  margin-bottom: 8px;
-  color: white;
+  font-size: 1em;
+  margin-bottom: 6px;
 }
 
 .progress-container {
   width: 100%;
-  height: 35px;
+  height: 30px;
   background-color: #ddd;
   border-radius: 20px;
   overflow: hidden;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   position: relative;
 }
 
@@ -37,7 +52,6 @@ body {
   width: 0;
   background-color: green;
   border-radius: 20px;
-  position: relative;
   transition: width 0.5s linear, background-color 0.5s ease;
   display: flex;
   align-items: center;
@@ -47,37 +61,39 @@ body {
 #bar-text {
   font-weight: bold;
   color: white;
-  font-size: 1em;
+  font-size: 0.95em;
   width: 100%;
   text-align: center;
   text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
 }
 
 #period-info {
-  font-size: 1.3em;
+  font-size: 1.2em;
   font-weight: bold;
-  margin: 5px 0;
+  margin: 4px 0;
 }
 
 #scheduleSelect-container {
-  margin-top: 10px;
+  margin-bottom: 4px;
 }
 
 select {
   font-size: 1em;
   border-radius: 6px;
   border: none;
-  padding: 4px 8px;
+  padding: 3px 6px;
 }
 
+/* CANVA EMBED fills remaining height */
 .canva-embed-wrapper {
+  flex: 1;
   width: 90%;
   max-width: 1200px;
-  aspect-ratio: 16/9;
-  margin: 1em 0;
+  margin-bottom: 6px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(63,69,81,0.16);
   overflow: hidden;
+  display: flex;
 }
 
 .canva-embed-wrapper iframe {
@@ -86,6 +102,7 @@ select {
   border: none;
 }
 
+/* Flashing effect for "School's Out!" */
 .flash {
   animation: flash 1s infinite;
 }
@@ -94,4 +111,27 @@ select {
   0% { color: white; }
   50% { color: yellow; }
   100% { color: white; }
+}
+
+/* RESPONSIVE FONT & BAR SCALING */
+@media (max-width: 1024px) {
+  .clock { font-size: 0.9em; }
+  #period-info { font-size: 1.1em; }
+  #bar-text { font-size: 0.85em; }
+  .progress-container { height: 25px; }
+}
+
+@media (max-width: 768px) {
+  .clock { font-size: 0.85em; }
+  #period-info { font-size: 1em; }
+  #bar-text { font-size: 0.8em; }
+  .progress-container { height: 22px; }
+}
+
+@media (max-width: 480px) {
+  .timer-container { width: 95%; }
+  .clock { font-size: 0.8em; }
+  #period-info { font-size: 0.9em; }
+  #bar-text { font-size: 0.75em; }
+  .progress-container { height: 20px; }
 }
