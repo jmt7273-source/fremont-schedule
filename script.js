@@ -6,52 +6,57 @@ const liveClock = document.getElementById("live-clock");
 
 const schedules = {
   regular: [
-    ["Period 1", "8:30", "9:38"],
-    ["Period 2", "9:44", "10:41"],
-    ["Period 3", "10:47", "11:44"],
-    ["Lunch", "11:44", "12:14"],
-    ["Period 4", "12:20", "13:17"],
-    ["Period 5", "13:23", "14:20"],
-    ["Period 6", "14:26", "15:23"],
+    ["Period 1", "8:30 AM", "9:38 AM"],
+    ["Period 2", "9:44 AM", "10:41 AM"],
+    ["Period 3", "10:47 AM", "11:44 AM"],
+    ["Lunch", "11:44 AM", "12:14 PM"],
+    ["Period 4", "12:20 PM", "1:17 PM"],
+    ["Period 5", "1:23 PM", "2:20 PM"],
+    ["Period 6", "2:26 PM", "3:23 PM"],
   ],
   tuesday: [
-    ["Period 1", "8:30", "9:28"],
-    ["Period 2", "9:34", "10:21"],
-    ["Period 3", "10:27", "11:14"],
-    ["Lunch", "11:14", "11:44"],
-    ["Period 4", "11:50", "12:37"],
-    ["Period 5", "12:43", "13:30"],
-    ["Period 6", "13:36", "14:23"],
+    ["Period 1", "8:30 AM", "9:28 AM"],
+    ["Period 2", "9:34 AM", "10:21 AM"],
+    ["Period 3", "10:27 AM", "11:14 AM"],
+    ["Lunch", "11:14 AM", "11:44 AM"],
+    ["Period 4", "11:50 AM", "12:37 PM"],
+    ["Period 5", "12:43 PM", "1:30 PM"],
+    ["Period 6", "1:36 PM", "2:23 PM"],
   ],
   minimum: [
-    ["Period 1", "8:30", "9:18"],
-    ["Period 2", "9:24", "9:59"],
-    ["Period 3", "10:05", "10:40"],
-    ["Lunch", "10:40", "11:10"],
-    ["Period 4", "11:16", "11:51"],
-    ["Period 5", "11:57", "12:32"],
-    ["Period 6", "12:38", "13:13"],
+    ["Period 1", "8:30 AM", "9:18 AM"],
+    ["Period 2", "9:24 AM", "9:59 AM"],
+    ["Period 3", "10:05 AM", "10:40 AM"],
+    ["Lunch", "10:40 AM", "11:10 AM"],
+    ["Period 4", "11:16 AM", "11:51 AM"],
+    ["Period 5", "11:57 AM", "12:32 PM"],
+    ["Period 6", "12:38 PM", "1:13 PM"],
   ],
   shortened: [
-    ["Period 1", "8:30", "9:28"],
-    ["Period 2", "9:34", "10:20"],
-    ["Period 3", "10:26", "11:12"],
-    ["Lunch", "11:12", "11:42"],
-    ["Period 4", "11:48", "12:34"],
-    ["Period 5", "12:40", "13:26"],
-    ["Period 6", "13:32", "14:18"],
+    ["Period 1", "8:30 AM", "9:28 AM"],
+    ["Period 2", "9:34 AM", "10:20 AM"],
+    ["Period 3", "10:26 AM", "11:12 AM"],
+    ["Lunch", "11:12 AM", "11:42 AM"],
+    ["Period 4", "11:48 AM", "12:34 PM"],
+    ["Period 5", "12:40 PM", "1:26 PM"],
+    ["Period 6", "1:32 PM", "2:18 PM"],
   ],
 };
 
-// Auto select Tuesday schedule
+// Automatically use Tuesday PD if today is Tuesday
 if (new Date().getDay() === 2) {
   scheduleSelect.value = "tuesday";
 }
 
-function parseTime(str) {
-  const [h, m] = str.split(":").map(Number);
+function parseTime(timeStr) {
   const d = new Date();
-  d.setHours(h, m, 0, 0);
+  const [time, modifier] = timeStr.split(" ");
+  let [hours, minutes] = time.split(":").map(Number);
+
+  if (modifier === "PM" && hours < 12) hours += 12;
+  if (modifier === "AM" && hours === 12) hours = 0;
+
+  d.setHours(hours, minutes, 0, 0);
   return d;
 }
 
@@ -82,9 +87,10 @@ function updateTimer() {
   const now = new Date();
   const current = getCurrentPeriod(schedule);
 
-  // Update live clock
+  // Live clock
   liveClock.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
+  // After final period
   if (!current) {
     progressBar.style.width = "100%";
     progressBar.style.backgroundColor = "gray";
@@ -99,10 +105,11 @@ function updateTimer() {
   const total = current.endTime - current.startTime;
   const remaining = current.endTime - now;
   const percent = 100 - (remaining / total) * 100;
-  progressBar.style.width = `${percent}%`;
+  progressBar.style.width = `${Math.max(0, percent)}%`;
 
   const minutesLeft = Math.floor(remaining / 60000);
   const secondsLeft = Math.floor((remaining % 60000) / 1000);
+  const timeLeft = `${minutesLeft}m ${secondsLeft}s left`;
 
   periodInfo.textContent = current.name;
 
@@ -111,10 +118,10 @@ function updateTimer() {
 
   if (minsFromStart <= 15 || minsToEnd <= 15) {
     progressBar.style.backgroundColor = "red";
-    barText.textContent = "No Bathroom or Passes • " + `${minutesLeft}m ${secondsLeft}s left`;
+    barText.textContent = `No Bathroom or Passes • ${timeLeft}`;
   } else {
     progressBar.style.backgroundColor = "green";
-    barText.textContent = `${minutesLeft}m ${secondsLeft}s left`;
+    barText.textContent = timeLeft;
   }
 }
 
