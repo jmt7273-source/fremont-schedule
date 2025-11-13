@@ -3,38 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fremont High - Classroom Timer</title>
+  <title>Fremont Class Timer</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="main-container">
+    <div id="scheduleSelect-container">
+      <label for="scheduleSelect">Select Schedule:</label>
+      <select id="scheduleSelect">
+        <option value="regular">Regular Day</option>
+        <option value="tuesday">Tuesday PD Schedule</option>
+        <option value="minimum">Minimum Day</option>
+        <option value="shortened">Shortened Day</option>
+      </select>
+    </div>
+
     <div class="timer-container">
       <div class="clock" id="live-clock"></div>
-
       <div class="progress-container">
         <div id="progress-bar">
-          <span id="bar-text"></span>
+          <div id="bar-text"></div>
         </div>
       </div>
-
       <div id="period-info"></div>
-
-      <div id="scheduleSelect-container">
-        <label for="scheduleSelect">Schedule: </label>
-        <select id="scheduleSelect">
-          <option value="regular">Regular Day</option>
-          <option value="tuesday">Tuesday PD</option>
-          <option value="minimum">Minimum Day</option>
-          <option value="shortened">Shortened Day</option>
-        </select>
-      </div>
     </div>
 
     <div class="canva-embed-wrapper">
-      <iframe
-        loading="lazy"
-        src="https://www.canva.com/design/DAG4mPMfK-c/boRs9fOoR8SB-jmYFFAsFQ/view?embed"
-        allowfullscreen="allowfullscreen">
+      <iframe 
+        loading="lazy" 
+        src="https://www.canva.com/design/DAG4mPMfK-c/boRs9fOoR8SB-jmYFFAsFQ/view?embed" 
+        allowfullscreen>
       </iframe>
     </div>
   </div>
