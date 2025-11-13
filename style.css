@@ -1,0 +1,97 @@
+body {
+  background-color: #800020; /* Fremont Burgundy */
+  color: white;
+  font-family: 'Arial', sans-serif;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.background-logo {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 60%;
+  max-width: 600px;
+  opacity: 0.08;
+  transform: translate(-50%, -50%);
+  background: url('FREMONT_SPIRIT_LOGO_MAIN.png') no-repeat center;
+  background-size: contain;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.timer-container {
+  position: relative;
+  z-index: 2;
+  width: 90%;
+  max-width: 900px;
+  margin: 50px auto;
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+h1 {
+  color: white;
+  margin-bottom: 10px;
+}
+
+.schedule-switch {
+  margin: 10px 0 20px 0;
+}
+
+.progress-container {
+  width: 100%;
+  background-color: #ccc;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 30px 0 10px 0;
+  height: 40px;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background-color: green;
+  transition: width 0.5s ease, background-color 1s ease; /* smoother transitions */
+}
+
+#message {
+  font-weight: bold;
+  color: #ffcccc;
+  margin-top: 10px;
+  font-size: 1.2em;
+  text-shadow: 1px 1px 2px #000;
+}
+
+#period-info {
+  margin: 20px 0 10px;
+  color: #ddd;
+  font-size: 1.5em;
+}
+
+#countdown {
+  font-size: 2em;
+  color: white;
+}
+
+/* Flashing animation for School's Out */
+.flash {
+  animation: flash 1s infinite alternate;
+}
+
+@keyframes flash {
+  from { color: white; opacity: 1; }
+  to { color: #ffcccc; opacity: 0.4; }
+}
+
+@media (max-width: 600px) {
+  #countdown {
+    font-size: 1.5em;
+  }
+}
