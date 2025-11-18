@@ -1,75 +1,112 @@
-:root{
-  --burgundy:#800020; --green:#16a34a; --red:#ef4444; --gray:#d1d5db; --white:#ffffff; --dark:#0f172a;
-}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:Segoe UI, Roboto, Arial, sans-serif;overflow:hidden}
-body{background:var(--white);color:var(--dark);display:flex;flex-direction:column;align-items:center}
-
-/* Teacher controls button (top-left) */
-.teacher-btn{
-  position:fixed; left:12px; top:12px; z-index:1200;
-  background:var(--burgundy); color:var(--white); border:none; padding:8px 10px; border-radius:8px; cursor:pointer; font-weight:700;
-  box-shadow:0 4px 12px rgba(0,0,0,0.12);
+:root {
+  --burgundy: #800020;
+  --green: #16a34a;
+  --red: #ef4444;
+  --gray: #d1d5db;
+  --white: #ffffff;
+  --dark: #0f172a;
 }
 
-/* Sliding panel */
-.teacher-panel{
-  position:fixed; left:12px; top:52px; z-index:1199;
-  width:320px; max-width:calc(100% - 24px);
-  background:#fff; color:var(--dark);
-  border-radius:10px; padding:12px; box-shadow:0 8px 30px rgba(0,0,0,0.12);
-  transform:translateY(-12px) scaleY(0); transform-origin:top; opacity:0; transition:transform .28s ease, opacity .28s ease;
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  overflow: hidden;
+  background: var(--white);
+  color: var(--dark);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-.teacher-panel.open{ transform:translateY(0) scaleY(1); opacity:1; }
 
-/* panel rows */
-.teacher-panel .panel-row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap }
-.teacher-panel label{ font-weight:700 }
-.teacher-panel select, .teacher-panel input[type="number"]{ padding:6px; border-radius:6px; border:1px solid #ddd }
-.teacher-panel button{ padding:6px 8px; border-radius:6px; border:none; background:var(--burgundy); color:var(--white); cursor:pointer }
-
-/* header layout */
-.header{ width:100%; max-width:1400px; display:flex; justify-content:space-between; align-items:flex-start; padding:12px 18px 8px; gap:12px }
-
-/* left timer block */
-.timer-block{ width:75%; max-width:900px; min-width:300px; display:flex; flex-direction:column; align-items:center; gap:6px }
-.clock{ font-weight:700 }
-
-/* progress */
-.progress-container{ width:100%; height:40px; background:var(--gray); border-radius:22px; position:relative; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.06) }
-#progress-bar{ position:absolute; left:0; top:0; height:100%; width:0%; background:var(--green); transition:width .45s linear, background-color .3s ease; border-radius:22px }
-#bar-text{ position:absolute; left:0; top:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:0 12px; font-weight:800; color:var(--white); text-shadow:0 1px 2px rgba(0,0,0,0.4); z-index:5; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-
-/* period + bathroom badge */
-.period-info{ font-weight:800; margin-top:6px }
-.bathroom-badge{ margin-top:6px; padding:6px 10px; border-radius:8px; background:rgba(239,68,68,0.12); color:var(--red); font-weight:700; display:inline-block }
-
-/* class timer (top-right) */
-.class-timer{ min-width:180px; max-width:340px; background:rgba(128,0,32,0.04); padding:10px; border-radius:10px; display:flex; flex-direction:column; gap:8px; align-items:center }
-.preset-row{ display:flex; gap:6px }
-.preset-row .preset{ background:var(--burgundy); color:var(--white); border:none; padding:6px 8px; border-radius:6px; cursor:pointer; font-weight:700 }
-.custom-row{ display:flex; gap:6px; align-items:center }
-.custom-row input{ width:48px; padding:6px; border-radius:6px; border:1px solid #ddd; text-align:center }
-.controls-row{ display:flex; gap:8px; align-items:center; width:100%; justify-content:center }
-.class-count{ min-width:78px; text-align:center; font-weight:800; background:var(--burgundy); color:var(--white); padding:6px 8px; border-radius:8px }
-.ct-buttons button{ background:#111827;color:#fff;border:none;padding:6px 8px;border-radius:6px; cursor:pointer }
-
-/* flash style */
-.flash{ animation:flash 1s steps(2,end) infinite; box-shadow:0 0 10px rgba(239,68,68,0.6) }
-@keyframes flash{ 0%{opacity:1} 50%{opacity:.2} 100%{opacity:1} }
-
-/* main content (Canva embed) */
-.content{ flex:1; width:100%; display:flex; justify-content:center; align-items:stretch; padding:0 12px 12px }
-.canva-embed{ width:90%; max-width:1200px; height:100%; border-radius:10px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.08) }
-.canva-embed iframe{ width:100%; height:100%; border:0 }
-
-/* responsive reductions */
-@media(max-width:1000px){
-  .timer-block{ width:80% }
-  #bar-text{ font-size:.95rem }
+.teacher-btn {
+  position: fixed;
+  left: 12px;
+  top: 12px;
+  z-index: 1200;
+  background: var(--burgundy);
+  color: var(--white);
+  border: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
 }
-@media(max-width:700px){
-  .header{ flex-direction:column; align-items:center; gap:8px }
-  .timer-block{ width:94% }
-  .teacher-panel{ left:8px; width:calc(100% - 16px) }
+
+/* Panel styling */
+.teacher-panel {
+  position: fixed;
+  left: 12px;
+  top: 52px;
+  z-index: 1199;
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  background: #fff;
+  color: var(--dark);
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  transform: translateY(-12px) scaleY(0);
+  transform-origin: top;
+  opacity: 0;
+  transition: transform .28s ease, opacity .28s ease;
+}
+.teacher-panel.open {
+  transform: translateY(0) scaleY(1);
+  opacity: 1;
+}
+
+.teacher-panel .panel-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.teacher-panel .panel-row.custom {
+  flex-direction: row;
+}
+
+/* Timer display */
+#display-container {
+  margin: 80px 0 0 0;
+  background: var(--gray);
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  padding: 2em 3em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#timer-label {
+  font-size: 1.3em;
+  font-weight: bold;
+}
+#timer-display {
+  font-size: 3em;
+  margin: 10px 0;
+}
+#timer-controls {
+  display: flex;
+  gap: 10px;
+}
+#timer-controls button {
+  font-size: 1em;
+}
+
+#progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--gray);
+  border-radius: 4px;
+  margin: 15px 0;
+  overflow: hidden;
+}
+#progress-fill {
+  width: 0%;
+  height: 100%;
+  background: var(--green);
+  transition: width 0.2s linear;
 }
