@@ -8,20 +8,36 @@
 </head>
 <body>
   <div class="main">
-    <!-- TOP HEADER / TIMER AREA -->
+
+    <!-- HEADER -->
     <header class="header">
       <div class="timer-block">
-        <div class="clock" id="live-clock" aria-live="polite"></div>
 
-        <div class="progress-container" aria-hidden="false">
-          <div id="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
-          <div id="bar-text" aria-live="polite"></div>
+        <!-- Manual Schedule Override -->
+        <div class="schedule-row">
+          <label for="schedule-select">Schedule:</label>
+          <select id="schedule-select">
+            <option value="auto">Auto (Default)</option>
+            <option value="regular">Regular</option>
+            <option value="tuesdayPD">Tuesday PD</option>
+            <option value="minimum">Minimum Day</option>
+            <option value="shortened">Shortened Day</option>
+          </select>
         </div>
 
-        <div id="period-info" class="period-info" aria-live="polite"></div>
+        <!-- Live Time -->
+        <div class="clock" id="live-clock"></div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+          <div id="progress-bar"></div>
+          <div id="bar-text"></div>
+        </div>
+
+        <div id="period-info" class="period-info"></div>
       </div>
 
-      <!-- Top-right classroom timer (presets + custom) -->
+      <!-- TOP-RIGHT CLASS TIMER -->
       <div class="class-timer" id="class-timer">
         <div class="preset-row">
           <button class="preset" data-sec="60">1:00</button>
@@ -31,8 +47,8 @@
         </div>
 
         <div class="custom-row">
-          <input id="custom-min" type="number" min="0" value="0" aria-label="minutes" /> :
-          <input id="custom-sec" type="number" min="0" max="59" value="30" aria-label="seconds" />
+          <input id="custom-min" type="number" min="0" value="0"> :
+          <input id="custom-sec" type="number" min="0" max="59" value="30">
           <button id="set-custom">Set</button>
         </div>
 
@@ -47,15 +63,15 @@
       </div>
     </header>
 
-    <!-- CANVA EMBED (fills remaining space) -->
+    <!-- CANVA EMBED -->
     <main class="content">
       <div class="canva-embed">
         <iframe loading="lazy"
           src="https://www.canva.com/design/DAG4mPMfK-c/boRs9fOoR8SB-jmYFFAsFQ/view?embed"
-          allowfullscreen
-          title="Timer Agendas (Canva)"></iframe>
+          allowfullscreen></iframe>
       </div>
     </main>
+
   </div>
 
   <script src="script.js"></script>
