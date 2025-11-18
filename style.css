@@ -1,176 +1,171 @@
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  background-color: #800020; /* Fremont Burgundy */
-  color: white;
-  font-family: 'Segoe UI', sans-serif;
-  overflow: hidden;
+/* Basic layout */
+:root{
+  --burgundy: #800020;
+  --gray: #d1d5db;
+  --white: #ffffff;
+  --green: #16a34a;
+  --red: #ef4444;
+  --dark: #0f172a;
 }
 
-.main-container {
+* { box-sizing: border-box; }
+
+html,body { height: 100%; margin: 0; font-family: "Segoe UI", Roboto, Arial, sans-serif; }
+
+body {
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--dark);
+  overflow: hidden; /* prevent page scroll; Canva fills remaining */
+}
+
+/* Main wrapper */
+.main {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  width: 100%;
   align-items: center;
 }
 
-/* TIMER AREA */
-.timer-container {
-  width: 70%;
-  max-width: 850px;
-  flex-shrink: 0;
-  padding: 8px 0 6px;
-  text-align: center;
+/* Header: contains timer area and top-right class timer */
+.header {
+  width: 100%;
+  max-width: 1400px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 20px 8px;
+  gap: 12px;
 }
 
-@media (max-width: 1024px) {
-  .timer-container {
-    width: 85%;
-    padding: 5px 0;
-  }
+/* Left timer block (centered, 75% width constraint) */
+.timer-block {
+  width: 75%;
+  max-width: 900px;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
 
+/* live clock */
 .clock {
-  font-size: 1em;
-  margin-bottom: 6px;
+  font-size: 1rem;
+  color: var(--dark);
+  font-weight: 600;
 }
 
-/* PROGRESS BAR */
+/* Progress container (bar background) */
 .progress-container {
   width: 100%;
-  height: 36px; /* 20% taller */
-  background-color: #ddd;
+  height: 36px;
+  background: var(--gray);
   border-radius: 20px;
+  position: relative;
   overflow: hidden;
-  margin-bottom: 6px;
-  position: relative;
+  box-shadow: 0 2px 8px rgba(15,23,42,0.06);
 }
 
-#progress-bar {
-  height: 100%;
-  width: 0;
-  background: linear-gradient(to right, #1a8800, #37b837);
-  border-radius: 20px;
-  transition: 
-    width 0.5s linear, 
-    background 1s ease-in-out, 
-    background-color 0.5s ease;
-  position: relative;
-}
-
-/* 🩸 Red warning gradient + pulse animation */
-.bar-warning {
-  background: linear-gradient(to right, #a00000, #cc0000, #a00000) !important;
-  animation: pulseRed 2s infinite ease-in-out;
-}
-
-/* 🩸 Gentle heartbeat pulse for red phase */
-@keyframes pulseRed {
-  0% { filter: brightness(1); }
-  50% { filter: brightness(1.25); }
-  100% { filter: brightness(1); }
-}
-
-#bar-text {
+/* The fill bar (grows left->right) */
+#progress-bar{
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-weight: bold;
-  color: white;
-  font-size: 1em;
-  width: 100%;
-  text-align: center;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
-}
-
-/* Flashing text */
-.flash-text {
-  animation: flashText 1s infinite;
-}
-
-@keyframes flashText {
-  0% { color: white; }
-  50% { color: #ffcccc; }
-  100% { color: white; }
-}
-
-/* Fade transition for smooth updates */
-.fade {
-  opacity: 0;
-  transition: opacity 0.6s ease;
-}
-.fade.show {
-  opacity: 1;
-}
-
-/* Period info */
-#period-info {
-  font-size: 1.2em;
-  font-weight: bold;
-  margin: 4px 0;
-}
-
-/* Schedule dropdown */
-#scheduleSelect-container {
-  margin-bottom: 4px;
-}
-
-select {
-  font-size: 1em;
-  border-radius: 6px;
-  border: none;
-  padding: 3px 6px;
-}
-
-/* Canva embed fills remaining height */
-.canva-embed-wrapper {
-  flex: 1;
-  width: 90%;
-  max-width: 1200px;
-  margin-bottom: 6px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(63,69,81,0.16);
-  overflow: hidden;
-  display: flex;
-}
-
-.canva-embed-wrapper iframe {
-  width: 100%;
+  left: 0;
+  top: 0;
   height: 100%;
-  border: none;
+  width: 0%;
+  background: var(--green);
+  transition: width 0.5s linear, background-color 0.5s ease;
 }
 
-/* "School's Out!" flashing text */
+/* Bar text floats above the fill so it's always readable */
+#bar-text{
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700;
+  color: var(--white);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.45);
+  padding: 0 10px;
+  z-index: 5;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* period label */
+.period-info { font-weight: 700; color: #111827; font-size: 1.05rem; margin-top: 4px; }
+
+/* TOP-RIGHT class timer controls */
+.class-timer {
+  width: auto;
+  min-width: 180px;
+  max-width: 320px;
+  background: rgba(128,0,32,0.06);
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Preset buttons row */
+.preset-row { display:flex; gap:6px; width:100%; justify-content:center; }
+.preset-row .preset {
+  background: var(--burgundy); color: var(--white); border: none; padding:6px 8px; border-radius:6px;
+  cursor:pointer; font-weight:600;
+  font-size:0.95rem;
+}
+.preset-row .preset:active{ transform: translateY(1px); }
+
+/* Custom input row */
+.custom-row { display:flex; gap:6px; align-items:center; justify-content:center; }
+.custom-row input { width:48px; padding:4px; border-radius:6px; border:1px solid #ccc; text-align:center; }
+.custom-row button { padding:5px 8px; border-radius:6px; border:none; background:#111827; color:#fff; cursor:pointer; }
+
+/* Countdown display and controls */
+.controls-row { display:flex; gap:8px; align-items:center; width:100%; justify-content:center; }
+.class-count {
+  min-width:78px;
+  text-align:center;
+  font-weight:700;
+  background:var(--burgundy);
+  color:var(--white);
+  padding:6px 8px;
+  border-radius:8px;
+  font-size:0.95rem;
+}
+.ct-buttons { display:flex; gap:6px; }
+.ct-buttons button { padding:6px 8px; border-radius:6px; border:none; background:#111827; color:#fff; cursor:pointer; font-weight:600; }
+
+/* Flashing when finished */
 .flash {
-  animation: flash 1s infinite;
+  animation: flash 1s steps(2, end) infinite;
+  box-shadow: 0 0 10px rgba(239,68,68,0.75);
 }
-@keyframes flash {
-  0% { color: white; }
-  50% { color: yellow; }
-  100% { color: white; }
-}
+@keyframes flash { 0%{ opacity:1 } 50% { opacity:0.25 } 100% { opacity:1 } }
 
-/* Responsive scaling */
-@media (max-width: 1024px) {
-  .clock { font-size: 0.9em; }
-  #period-info { font-size: 1.1em; }
-  #bar-text { font-size: 0.9em; }
-  .progress-container { height: 30px; }
-}
+/* CONTENT / CANVA AREA */
+.content { flex:1; width:100%; display:flex; align-items:stretch; justify-content:center; padding:0 10px 12px; }
+.canva-embed { width:90%; max-width:1200px; height:100%; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(15,23,42,0.12); }
+.canva-embed iframe { width:100%; height:100%; border:0; }
 
-@media (max-width: 768px) {
-  .clock { font-size: 0.85em; }
-  #period-info { font-size: 1em; }
-  #bar-text { font-size: 0.85em; }
-  .progress-container { height: 28px; }
+/* Responsive tweaks: shrink timer fonts on small screens so the layout fits */
+@media (max-width: 1100px) {
+  .timer-block { width: 70%; }
+  #bar-text { font-size: 0.95rem; }
+  .class-timer { min-width: 160px; }
 }
-
-@media (max-width: 480px) {
-  .timer-container { width: 95%; }
-  .clock { font-size: 0.8em; }
-  #period-info { font-size: 0.9em; }
-  #bar-text { font-size: 0.8em; }
-  .progress-container { height: 26px; }
+@media (max-width: 800px) {
+  .header { flex-direction: column; align-items:center; gap:10px; }
+  .timer-block { width: 92%; max-width: none; }
+  .class-timer { align-self: center; }
+  #bar-text { font-size: 0.9rem; }
+  .class-count { min-width:64px; font-size:0.9rem; padding:5px 6px; }
 }
