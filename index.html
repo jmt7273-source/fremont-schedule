@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -7,72 +7,103 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="main">
+  <!-- Teacher Controls (top-left) -->
+  <button id="teacher-btn" class="teacher-btn" aria-expanded="false">Teacher Controls ▾</button>
 
-    <!-- HEADER -->
-    <header class="header">
-      <div class="timer-block">
+  <div id="teacher-panel" class="teacher-panel" aria-hidden="true">
+    <div class="panel-row">
+      <label for="override-select">Schedule:</label>
+      <select id="override-select">
+        <option value="auto">Auto (weekday)</option>
+        <option value="regular">Regular</option>
+        <option value="tuesdayPD">Tuesday PD</option>
+        <option value="minimum">Minimum Day</option>
+        <option value="shortened">Shortened Day</option>
+      </select>
+    </div>
 
-        <!-- Manual Schedule Override -->
-        <div class="schedule-row">
-          <label for="schedule-select">Schedule:</label>
-          <select id="schedule-select">
-            <option value="auto">Auto (Default)</option>
-            <option value="regular">Regular</option>
-            <option value="tuesdayPD">Tuesday PD</option>
-            <option value="minimum">Minimum Day</option>
-            <option value="shortened">Shortened Day</option>
-          </select>
-        </div>
-
-        <!-- Live Time -->
-        <div class="clock" id="live-clock"></div>
-
-        <!-- Progress Bar -->
-        <div class="progress-container">
-          <div id="progress-bar"></div>
-          <div id="bar-text"></div>
-        </div>
-
-        <div id="period-info" class="period-info"></div>
+    <div class="panel-row">
+      <div class="quick-label">Quick timers:</div>
+      <div class="quick-buttons">
+        <button class="preset" data-sec="300">5:00</button>
+        <button class="preset" data-sec="600">10:00</button>
+        <button class="preset" data-sec="900">15:00</button>
+        <button class="preset" data-sec="1800">30:00</button>
       </div>
+    </div>
 
-      <!-- TOP-RIGHT CLASS TIMER -->
-      <div class="class-timer" id="class-timer">
-        <div class="preset-row">
-          <button class="preset" data-sec="60">1:00</button>
-          <button class="preset" data-sec="180">3:00</button>
-          <button class="preset" data-sec="300">5:00</button>
-          <button class="preset" data-sec="600">10:00</button>
-        </div>
+    <div class="panel-row custom">
+      <div class="quick-label">Custom timer</div>
+      <input id="teach-min" type="number" min="0" value="0" aria-label="minutes" />
+      :
+      <input id="teach-sec" type="number" min="0" max="59" value="30" aria-label="seconds" />
+      <button id="teach-set">Set & Start</button>
+    </div>
 
-        <div class="custom-row">
-          <input id="custom-min" type="number" min="0" value="0"> :
-          <input id="custom-sec" type="number" min="0" max="59" value="30">
-          <button id="set-custom">Set</button>
-        </div>
+    <div class="panel-row">
+      <label for="alarm-toggle">Alarm:</label>
+      <select id="alarm-toggle">
+        <option value="on">On</option>
+        <option value="off">Off</option>
+      </select>
 
-        <div class="controls-row">
-          <div id="class-count" class="class-count">00:00</div>
-          <div class="ct-buttons">
-            <button id="start-btn">Start</button>
-            <button id="pause-btn">Pause</button>
-            <button id="reset-btn">Reset</button>
-          </div>
-        </div>
-      </div>
-    </header>
+      <label for="alarm-volume">Volume:</label>
+      <input id="alarm-volume" type="range" min="0" max="1" step="0.01" value="0.2" />
+    </div>
 
-    <!-- CANVA EMBED -->
-    <main class="content">
-      <div class="canva-embed">
-        <iframe loading="lazy"
-          src="https://www.canva.com/design/DAG4mPMfK-c/boRs9fOoR8SB-jmYFFAsFQ/view?embed"
-          allowfullscreen></iframe>
-      </div>
-    </main>
-
+    <div class="panel-row">
+      <button id="fullscreen-btn">Enter Fullscreen</button>
+      <button id="close-panel">Close</button>
+    </div>
   </div>
+
+  <!-- Top header containing main bar and class timer -->
+  <header class="header">
+    <div class="timer-block">
+      <div class="clock" id="live-clock" aria-live="polite"></div>
+
+      <div class="progress-container" role="region" aria-label="class progress">
+        <div id="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+        <div id="bar-text" aria-live="polite"></div>
+      </div>
+
+      <div id="period-info" class="period-info" aria-live="polite"></div>
+      <div id="bathroom-badge" class="bathroom-badge" aria-live="polite" hidden></div>
+    </div>
+
+    <div class="class-timer" id="class-timer">
+      <div class="preset-row">
+        <button class="preset" data-sec="60">1:00</button>
+        <button class="preset" data-sec="180">3:00</button>
+        <button class="preset" data-sec="300">5:00</button>
+        <button class="preset" data-sec="600">10:00</button>
+      </div>
+
+      <div class="custom-row">
+        <input id="custom-min" type="number" min="0" value="0" aria-label="minutes" /> :
+        <input id="custom-sec" type="number" min="0" max="59" value="30" aria-label="seconds" />
+        <button id="set-custom">Set</button>
+      </div>
+
+      <div class="controls-row">
+        <div id="class-count" class="class-count">00:00</div>
+        <div class="ct-buttons">
+          <button id="start-btn">Start</button>
+          <button id="pause-btn">Pause</button>
+          <button id="reset-btn">Reset</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Canva embed fills the remainder of the viewport -->
+  <main class="content">
+    <div class="canva-embed">
+      <iframe loading="lazy"
+        src="https://www.canva.com/design/DAG4mPMfK-c/boRs9fOoR8SB-jmYFFAsFQ/view?embed"
+        title="Timer Agendas (Canva)" allowfullscreen></iframe>
+    </div>
+  </main>
 
   <script src="script.js"></script>
 </body>

@@ -1,56 +1,65 @@
-// -------------------------
-// SCHEDULES
-// -------------------------
+/* ===========
+   CONFIG & SCHEDULES
+   =========== */
 const SCHEDULES = {
   regular: [
-    { name:"Period 1", start:"08:30", end:"09:38" },
-    { name:"Period 2", start:"09:44", end:"10:41" },
-    { name:"Period 3", start:"10:47", end:"11:44" },
-    { name:"Lunch",    start:"11:44", end:"12:14" },
-    { name:"Period 4", start:"12:20", end:"13:17" },
-    { name:"Period 5", start:"13:23", end:"14:20" },
-    { name:"Period 6", start:"14:26", end:"15:23" }
+    { name: "Period 1", start: "08:30", end: "09:38" },
+    { name: "Period 2", start: "09:44", end: "10:41" },
+    { name: "Period 3", start: "10:47", end: "11:44" },
+    { name: "Lunch",    start: "11:44", end: "12:14" },
+    { name: "Period 4", start: "12:20", end: "13:17" },
+    { name: "Period 5", start: "13:23", end: "14:20" },
+    { name: "Period 6", start: "14:26", end: "15:23" }
   ],
   tuesdayPD: [
-    { name:"Period 1", start:"08:30", end:"09:28" },
-    { name:"Period 2", start:"09:34", end:"10:21" },
-    { name:"Period 3", start:"10:27", end:"11:14" },
-    { name:"Lunch",    start:"11:14", end:"11:44" },
-    { name:"Period 4", start:"11:50", end:"12:37" },
-    { name:"Period 5", start:"12:43", end:"13:30" },
-    { name:"Period 6", start:"13:36", end:"14:23" }
+    { name: "Period 1", start: "08:30", end: "09:28" },
+    { name: "Period 2", start: "09:34", end: "10:21" },
+    { name: "Period 3", start: "10:27", end: "11:14" },
+    { name: "Lunch",    start: "11:14", end: "11:44" },
+    { name: "Period 4", start: "11:50", end: "12:37" },
+    { name: "Period 5", start: "12:43", end: "13:30" },
+    { name: "Period 6", start: "13:36", end: "14:23" }
   ],
   minimum: [
-    { name:"Period 1", start:"08:30", end:"09:18" },
-    { name:"Period 2", start:"09:24", end:"09:59" },
-    { name:"Period 3", start:"10:05", end:"10:40" },
-    { name:"Lunch",    start:"10:40", end:"11:10" },
-    { name:"Period 4", start:"11:16", end:"11:51" },
-    { name:"Period 5", start:"11:57", end:"12:32" },
-    { name:"Period 6", start:"12:38", end:"13:13" }
+    { name: "Period 1", start: "08:30", end: "09:18" },
+    { name: "Period 2", start: "09:24", end: "09:59" },
+    { name: "Period 3", start: "10:05", end: "10:40" },
+    { name: "Lunch",    start: "10:40", end: "11:10" },
+    { name: "Period 4", start: "11:16", end: "11:51" },
+    { name: "Period 5", start: "11:57", end: "12:32" },
+    { name: "Period 6", start: "12:38", end: "13:13" }
   ],
-  shortened:[
-    { name:"Period 1", start:"08:30", end:"09:28" },
-    { name:"Period 2", start:"09:34", end:"10:20" },
-    { name:"Period 3", start:"10:26", end:"11:12" },
-    { name:"Lunch",    start:"11:12", end:"11:42" },
-    { name:"Period 4", start:"11:48", end:"12:34" },
-    { name:"Period 5", start:"12:40", end:"13:26" },
-    { name:"Period 6", start:"13:32", end:"14:18" }
+  shortened: [
+    { name: "Period 1", start: "08:30", end: "09:28" },
+    { name: "Period 2", start: "09:34", end: "10:20" },
+    { name: "Period 3", start: "10:26", end: "11:12" },
+    { name: "Lunch",    start: "11:12", end: "11:42" },
+    { name: "Period 4", start: "11:48", end: "12:34" },
+    { name: "Period 5", start: "12:40", end: "13:26" },
+    { name: "Period 6", start: "13:32", end: "14:18" }
   ]
 };
 
-// -------------------------
-// DOM Elements
-// -------------------------
-const scheduleSelect = document.getElementById("schedule-select");
+/* ===========
+   DOM
+   =========== */
+const teacherBtn = document.getElementById("teacher-btn");
+const teacherPanel = document.getElementById("teacher-panel");
+const closePanelBtn = document.getElementById("close-panel");
+const overrideSelect = document.getElementById("override-select");
+const fullscreenBtn = document.getElementById("fullscreen-btn");
+const alarmToggle = document.getElementById("alarm-toggle");
+const alarmVolume = document.getElementById("alarm-volume");
+const quickPresetsPanel = Array.from(document.querySelectorAll(".teacher-panel .preset"));
+
 const progressBar = document.getElementById("progress-bar");
 const barText = document.getElementById("bar-text");
 const periodInfo = document.getElementById("period-info");
 const liveClockEl = document.getElementById("live-clock");
+const bathroomBadge = document.getElementById("bathroom-badge");
 
-// CLASS TIMER elements
-const presets = Array.from(document.querySelectorAll(".preset"));
+// class timer DOM
+const presets = Array.from(document.querySelectorAll(".preset-row .preset"));
 const customMin = document.getElementById("custom-min");
 const customSec = document.getElementById("custom-sec");
 const setCustomBtn = document.getElementById("set-custom");
@@ -58,233 +67,262 @@ const startBtn = document.getElementById("start-btn");
 const pauseBtn = document.getElementById("pause-btn");
 const resetBtn = document.getElementById("reset-btn");
 const classCount = document.getElementById("class-count");
+const teachMin = document.getElementById("teach-min");
+const teachSec = document.getElementById("teach-sec");
+const teachSet = document.getElementById("teach-set");
 
-// -------------------------
-// SCHEDULE MODE
-// -------------------------
-let scheduleMode = "auto";       // auto | regular | tuesdayPD | minimum | shortened
-let activeSchedule = SCHEDULES.regular;
+/* ===========
+   STATE
+   =========== */
+let scheduleMode = "auto"; // auto | regular | tuesdayPD | minimum | shortened
+let activeSchedule = (new Date().getDay() === 2) ? SCHEDULES.tuesdayPD : SCHEDULES.regular;
 
-// auto choose based on day
-function autoSchedule() {
-  const today = new Date().getDay();
-  return today === 2 ? SCHEDULES.tuesdayPD : SCHEDULES.regular;
-}
+// class timer state
+let classTimerTotal = 0, classTimerRemaining = 0, classTimerRunning = false, classIntv = null;
+let audioCtx = null;
+let alarmEnabled = true;
+let alarmGain = 0.2;
 
-// update activeSchedule when dropdown changes
-scheduleSelect.addEventListener("change", () => {
-  scheduleMode = scheduleSelect.value;
-
-  if (scheduleMode === "auto") {
-    activeSchedule = autoSchedule();
-  } else {
-    activeSchedule = SCHEDULES[scheduleMode];
-  }
-});
-
-// -------------------------
-// Helpers
-// -------------------------
-function parseToday(timeHHMM){
-  const [hh,mm] = timeHHMM.split(":").map(Number);
+/* ===========
+   HELPERS
+   =========== */
+function parseHHMM(hhmm){
+  const [h,m] = hhmm.split(":").map(Number);
   const d = new Date();
-  d.setHours(hh,mm,0,0);
+  d.setHours(h,m,0,0);
+  d.setMilliseconds(0);
   return d;
 }
-
-// -------------------------
-// MAIN CLOCK / SCHEDULE LOOP
-// -------------------------
-function updateMainClockAndSchedule(){
-  const now = new Date();
-  liveClockEl.textContent = now.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"});
-
-  // update schedule if in Auto mode
-  if (scheduleMode === "auto") {
-    activeSchedule = autoSchedule();
+function formatMMSS(sec){
+  if (sec < 0) sec = 0;
+  const m = Math.floor(sec/60);
+  const s = Math.floor(sec % 60);
+  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
+function initAudio(){
+  if (!audioCtx){
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e){ audioCtx = null; console.warn("Audio blocked", e); }
   }
+}
 
-  const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
+/* ===========
+   SCHEDULE & MAIN LOOP
+   =========== */
+function autoSchedule(){ return (new Date().getDay() === 2) ? SCHEDULES.tuesdayPD : SCHEDULES.regular; }
+overrideSelect.value = "auto";
+
+overrideSelect.addEventListener("change", () => {
+  scheduleMode = overrideSelect.value;
+  if (scheduleMode === "auto") activeSchedule = autoSchedule();
+  else activeSchedule = SCHEDULES[scheduleMode];
+});
+
+// update function
+function updateClockAndSchedule(){
+  const now = new Date();
+  liveClockEl.textContent = now.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+
+  // auto refresh schedule
+  if (scheduleMode === "auto") activeSchedule = autoSchedule();
+
+  const currentMins = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
 
   let current=null, next=null;
-
-  for (let i=0; i<activeSchedule.length; i++){
+  for (let i=0;i<activeSchedule.length;i++){
     const p = activeSchedule[i];
-    const s = parseToday(p.start);
-    const e = parseToday(p.end);
+    const s = parseHHMM(p.start);
+    const e = parseHHMM(p.end);
     const sM = s.getHours()*60 + s.getMinutes();
     const eM = e.getHours()*60 + e.getMinutes();
-
-    if (nowMin >= sM && nowMin < eM){
+    if (currentMins >= sM && currentMins < eM){
       current = {...p, start:s, end:e};
-      next = activeSchedule[i+1] || null;
+      next = (i+1 < activeSchedule.length) ? activeSchedule[i+1] : null;
       break;
     }
-    if (nowMin < sM){
-      next = p;
-      break;
-    }
+    if (currentMins < sM){ next = p; break; }
   }
 
-  // After school
   if (!current && !next){
+    periodInfo.textContent = "School's Out!";
     progressBar.style.width = "100%";
     progressBar.style.background = "#6a0d15";
     barText.textContent = "School's Out!";
-    periodInfo.textContent = "School's Out!";
+    bathroomBadge.hidden = true;
     return;
   }
 
-  // Passing period
   if (!current && next){
-    const nextStart = parseToday(next.start);
-    let diff = Math.max(0, Math.floor((nextStart - now)/1000));
-    let mm = Math.floor(diff/60);
-    let ss = diff % 60;
-    barText.textContent = `${mm}:${String(ss).padStart(2,"0")}`;
-    progressBar.style.width ="0%";
-    progressBar.style.background="#9ca3af";
     periodInfo.textContent = "Passing Period";
+    const diffSec = Math.max(0, Math.floor((parseHHMM(next.start)-now)/1000));
+    barText.textContent = formatMMSS(diffSec);
+    progressBar.style.width = "0%";
+    progressBar.style.background = "#9ca3af";
+    bathroomBadge.hidden = true;
     return;
   }
 
-  // In class
-  if (current){
-    const total = (current.end - current.start)/1000;
-    const remaining = Math.max(0, Math.floor((current.end - now)/1000));
-    const elapsed = Math.max(0, Math.floor((now - current.start)/1000));
-    const percent = Math.max(0, Math.min(100, (elapsed/total)*100));
+  // during class
+  const totalSec = Math.max(1, Math.floor((current.end - current.start)/1000));
+  const remainingSec = Math.max(0, Math.floor((current.end - now)/1000));
+  const elapsedSec = Math.max(0, Math.floor((now - current.start)/1000));
+  const percent = Math.max(0, Math.min(100, (elapsedSec/totalSec)*100));
 
-    progressBar.style.width = percent + "%";
+  progressBar.style.width = percent + "%";
+  periodInfo.textContent = current.name;
 
-    const mm = Math.floor(remaining/60);
-    const ss = remaining % 60;
-    const timeText = `${mm}:${String(ss).padStart(2,"0")}`;
-
-    periodInfo.textContent = current.name;
-
-    // red zone 1st 15 and last 15
-    if (elapsed <= 900 || remaining <= 900){
-      progressBar.style.background = "#ef4444";
-      barText.textContent = `No Bathroom or Passes — ${timeText}`;
-    } else {
-      progressBar.style.background = "#16a34a";
-      barText.textContent = timeText;
-    }
+  const timeText = formatMMSS(remainingSec);
+  // red zone = first or last 15 min => 900 seconds
+  if (elapsedSec <= 900 || remainingSec <= 900){
+    progressBar.style.background = "var(--red)";
+    barText.textContent = `No Bathroom or Passes — ${timeText}`;
+    bathroomBadge.hidden = false;
+    bathroomBadge.textContent = `No Bathroom or Passes — ${timeText}`;
+  } else {
+    progressBar.style.background = "var(--green)";
+    barText.textContent = timeText;
+    bathroomBadge.hidden = true;
   }
 }
 
-setInterval(updateMainClockAndSchedule, 500);
-updateMainClockAndSchedule();
+setInterval(updateClockAndSchedule, 500);
+updateClockAndSchedule();
 
-// -------------------------
-// CLASS TIMER
-// -------------------------
-let classTimerTotal = 0;
-let classTimerRemaining = 0;
-let classRunning = false;
-let intv = null;
-
-// safe audio context
-let audioCtx = null;
-function initAudio(){
-  if (!audioCtx){
-    try{
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }catch(e){ console.warn("Audio init failed", e); }
-  }
-}
-
-// alarm sound
-function playAlarm(){
-  initAudio();
-  if (!audioCtx) return;
-
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = "sine";
-  osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-  gain.gain.value = 0.2;
-
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-
-  osc.start();
-
-  // 2 second downward chirp
-  osc.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 2);
-  gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2);
-
-  osc.stop(audioCtx.currentTime + 2.1);
-}
-
-function fmt(sec){
-  const m = Math.floor(sec/60);
-  const s = sec % 60;
-  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
-}
-
+/* ===========
+   CLASS TIMER (top-right) logic
+   =========== */
 function updateClassTimerUI(){
-  classCount.textContent = fmt(classTimerRemaining);
-
+  classCount.textContent = formatMMSS(classTimerRemaining);
   if (classTimerRemaining <= 0 && classTimerTotal > 0){
     classCount.classList.add("flash");
-    playAlarm();
+    if (alarmEnabled) playAlarm();
     stopClassTimer();
   } else {
     classCount.classList.remove("flash");
   }
 }
 
-function tick(){
-  if (!classRunning) return;
+function tickClassTimer(){
+  if (!classTimerRunning) return;
   classTimerRemaining = Math.max(0, classTimerRemaining-1);
   updateClassTimerUI();
 }
 
 function startClassTimer(){
-  initAudio(); // ensures audio unlock on click
   if (classTimerTotal <= 0) return;
-  if (!classRunning){
-    classRunning = true;
-    intv = setInterval(tick, 1000);
+  initAudio();
+  if (!classTimerRunning){
+    classTimerRunning = true;
+    classIntv = setInterval(tickClassTimer, 1000);
   }
 }
-
 function stopClassTimer(){
-  classRunning = false;
-  clearInterval(intv);
+  classTimerRunning = false;
+  if (classIntv){ clearInterval(classIntv); classIntv = null; }
 }
-
 function resetClassTimer(){
   stopClassTimer();
   classTimerRemaining = classTimerTotal;
   updateClassTimerUI();
 }
 
-// PRESETS
-presets.forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    const sec = parseInt(btn.dataset.sec);
-    classTimerTotal = sec;
-    classTimerRemaining = sec;
-    updateClassTimerUI();
+// Play alarm using WebAudio
+function playAlarm(){
+  if (!audioCtx) return;
+  try {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(880, audioCtx.currentTime);
+    g.gain.setValueAtTime(0, audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(alarmGain, audioCtx.currentTime + 0.02);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    o.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 2);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2);
+    setTimeout(()=>{ try{ o.stop(); }catch(e){} }, 2100);
+  } catch (e){ console.warn("alarm play error", e); }
+}
+
+/* Preset buttons (student area) */
+presets.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const sec = parseInt(btn.dataset.sec,10) || 0;
+    classTimerTotal = sec; classTimerRemaining = sec; updateClassTimerUI();
   });
 });
 
-// CUSTOM
-setCustomBtn.addEventListener("click",()=>{
-  const m = Math.max(0, parseInt(customMin.value)||0);
-  const s = Math.max(0, parseInt(customSec.value)||0);
-  classTimerTotal = m*60 + s;
-  classTimerRemaining = classTimerTotal;
-  updateClassTimerUI();
+/* Student custom set */
+setCustomBtn.addEventListener("click", () => {
+  const m = Math.max(0, parseInt(customMin.value,10) || 0);
+  const s = Math.max(0, parseInt(customSec.value,10) || 0);
+  classTimerTotal = m*60 + s; classTimerRemaining = classTimerTotal; updateClassTimerUI();
 });
 
-// BUTTONS
-startBtn.addEventListener("click", startClassTimer);
-pauseBtn.addEventListener("click", stopClassTimer);
-resetBtn.addEventListener("click", resetClassTimer);
+/* Controls */
+startBtn.addEventListener("click", () => { initAudio(); startClassTimer(); });
+pauseBtn.addEventListener("click", () => { stopClassTimer(); });
+resetBtn.addEventListener("click", () => { resetClassTimer(); });
 
-// initialize display
+/* Teacher quick presets */
+Array.from(document.querySelectorAll(".teacher-panel .preset")).forEach(b=>{
+  b.addEventListener("click", ()=>{
+    const sec = parseInt(b.dataset.sec,10) || 0;
+    classTimerTotal = sec; classTimerRemaining = sec; updateClassTimerUI(); startClassTimer();
+  });
+});
+
+/* Teacher custom set & start */
+teachSet.addEventListener("click", ()=>{
+  const m = Math.max(0, parseInt(teachMin.value,10)||0);
+  const s = Math.max(0, parseInt(teachSec.value,10)||0);
+  classTimerTotal = m*60 + s; classTimerRemaining = classTimerTotal; updateClassTimerUI(); startClassTimer();
+});
+
+/* Alarm toggle & volume */
+alarmToggle.addEventListener("change", ()=>{ alarmEnabled = (alarmToggle.value === "on"); });
+alarmVolume.addEventListener("input", ()=>{ alarmGain = parseFloat(alarmVolume.value); });
+
+/* ===========
+   Teacher panel & fullscreen behaviors
+   =========== */
+teacherBtn.addEventListener("click", ()=> {
+  const open = teacherPanel.classList.toggle("open");
+  teacherBtn.setAttribute("aria-expanded", String(open));
+  teacherPanel.setAttribute("aria-hidden", String(!open));
+});
+closePanelBtn.addEventListener("click", ()=> { teacherPanel.classList.remove("open"); teacherBtn.setAttribute("aria-expanded","false"); teacherPanel.setAttribute("aria-hidden","true"); });
+
+// allow clicking outside to close
+document.addEventListener("click", (e)=>{
+  if (!teacherPanel.classList.contains("open")) return;
+  if (teacherPanel.contains(e.target) || teacherBtn.contains(e.target)) return;
+  teacherPanel.classList.remove("open");
+  teacherBtn.setAttribute("aria-expanded","false");
+  teacherPanel.setAttribute("aria-hidden","true");
+});
+
+// fullscreen toggle
+fullscreenBtn.addEventListener("click", async ()=>{
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+      fullscreenBtn.textContent = "Exit Fullscreen";
+    } else {
+      await document.exitFullscreen();
+      fullscreenBtn.textContent = "Enter Fullscreen";
+    }
+  } catch (e) { console.warn("Fullscreen error", e); }
+});
+
+/* initialize audio on first user gesture (helps autoplay policies) */
+["click","touchstart"].forEach(evt=>{
+  window.addEventListener(evt, function once(){
+    initAudio();
+    window.removeEventListener(evt, once);
+  }, { once:true });
+});
+
+/* initialize UI */
 updateClassTimerUI();
+updateClockAndSchedule();
