@@ -8,7 +8,8 @@
 </head>
 <body>
   <header>
-    <img id="schoolLogo" src="FREMONT_SPIRIT_LOGO_MAIN.jpg" alt="Fremont Pathfinders Logo" tabindex="0" />
+    <img id="schoolLogo" src="FREMONT_SPIRIT_LOGO_MAIN.png" alt="Fremont Pathfinders Logo" tabindex="0" />
+    <span id="currentTime" aria-live="polite" style="font-weight:bold; margin-left:10px;"></span>
     <label for="scheduleSelect">Select Schedule:</label>
     <select id="scheduleSelect">
       <option value="auto">Auto (Regular or Tuesday PD)</option>
@@ -34,18 +35,19 @@
       </div>
       <button id="startAlarmBtn">Start</button>
       <div id="alarmTimerDisplay" aria-live="polite" role="timer">00:00</div>
-      <audio id="alarmSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+      <audio id="alarmSound" src="calm_ringtone.mp3" preload="auto"></audio>
       <label><input type="checkbox" id="periodSoundsToggle" checked /> Period Sounds</label>
     </div>
   </header>
 
   <section id="countdownSection" aria-live="polite">
-    <div id="countdownBarContainer">
+    <div id="countdownBarContainer" style="position: relative;">
       <div id="countdownBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
         <span id="countdownText"></span>
       </div>
-      <div id="elapsedTimeText"></div>
+      <div id="countdownTextOutside" aria-hidden="true"></div>
     </div>
+    <div id="elapsedTimeText"></div>
     <div id="passingPeriodText"></div>
   </section>
 

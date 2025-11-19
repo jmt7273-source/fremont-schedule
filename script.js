@@ -1,4 +1,3 @@
-// Schedules as before
 const schedules = {
   regular: [
     { name: "Period 1", start: "08:30", end: "09:38" },
@@ -58,11 +57,12 @@ let countdownInterval;
 let alarmInterval;
 let alarmTimeLeft = 0;
 
-let testTime = null; // simulated time or null for live
+let testTime = null; // simulated time or null live time
 
 const scheduleSelect = document.getElementById("scheduleSelect");
 const countdownBar = document.getElementById("countdownBar");
 const countdownText = document.getElementById("countdownText");
+const countdownTextOutside = document.getElementById("countdownTextOutside");
 const elapsedTimeText = document.getElementById("elapsedTimeText");
 const passingPeriodText = document.getElementById("passingPeriodText");
 
@@ -87,7 +87,14 @@ const adminPanel = document.getElementById("adminPanel");
 const resetTimerBtn = document.getElementById("resetTimerBtn");
 const closeAdminBtn = document.getElementById("closeAdminBtn");
 
-// Dark Mode Setup
+const currentTimeDisplay = document.getElementById("currentTime");
+
+function updateCurrentTime() {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+  currentTimeDisplay.textContent = timeStr;
+}
+
 function setDarkMode(enabled) {
   if (enabled) {
     document.documentElement.setAttribute("data-theme", "dark");
@@ -109,7 +116,6 @@ if (localStorage.getItem("darkMode") === "true") {
 } else {
   setDarkMode(false);
 }
-
 
 function getTodayScheduleKey() {
   const today = testTime !== null ? new Date(testTime) : new Date();
@@ -154,12 +160,17 @@ function updateCountdown() {
     countdownBar.style.width = "100%";
     countdownBar.classList.remove("pulsing");
     countdownText.textContent = "No active periods now";
+    countdownTextOutside.style.display = "none";
     elapsedTimeText.textContent = "";
     passingPeriodText.textContent = "";
     lastPeriodName = null;
     lastIsInPeriod = null;
     return;
   }
+
+  const fullContainerWidth = countdownBar.parentElement.offsetWidth;
+  const widthPercent = (countdownBar.offsetWidth / fullContainerWidth) * 100;
+  const textTooSmall = widthPercent < 30;
 
   if (inPeriod) {
     const period = currentSchedule[currentPeriodIndex];
@@ -174,17 +185,44 @@ function updateCountdown() {
     countdownBar.style.width = percentage + "%";
 
     if (elapsed < redThreshold) {
+      const message = `[translate:No Bathroom or Passes] - ${Math.ceil((redThreshold - elapsed) / 60)} min`;
+      if (textTooSmall) {
+        countdownText.style.display = "none";
+        countdownTextOutside.style.display = "inline";
+        countdownTextOutside.textContent = message;
+      } else {
+        countdownText.style.display = "inline";
+        countdownTextOutside.style.display = "none";
+        countdownText.textContent = message;
+      }
       countdownBar.style.backgroundColor = "var(--red)";
       countdownBar.classList.add("pulsing");
-      countdownText.textContent = "[translate:No Bathroom or Passes] - " + Math.ceil((redThreshold - elapsed) / 60) + " min";
     } else if (remaining < redThreshold) {
+      const message = `[translate:No Bathroom or Passes] - ${Math.ceil(remaining / 60)} min`;
+      if (textTooSmall) {
+        countdownText.style.display = "none";
+        countdownTextOutside.style.display = "inline";
+        countdownTextOutside.textContent = message;
+      } else {
+        countdownText.style.display = "inline";
+        countdownTextOutside.style.display = "none";
+        countdownText.textContent = message;
+      }
       countdownBar.style.backgroundColor = "var(--red)";
       countdownBar.classList.add("pulsing");
-      countdownText.textContent = "[translate:No Bathroom or Passes] - " + Math.ceil(remaining / 60) + " min";
     } else {
+      const message = `${period.name}: ${formatTime(remaining)}`;
+      if (textTooSmall) {
+        countdownText.style.display = "none";
+        countdownTextOutside.style.display = "inline";
+        countdownTextOutside.textContent = message;
+      } else {
+        countdownText.style.display = "inline";
+        countdownTextOutside.style.display = "none";
+        countdownText.textContent = message;
+      }
       countdownBar.style.backgroundColor = "var(--green)";
       countdownBar.classList.remove("pulsing");
-      countdownText.textContent = period.name + ": " + formatTime(remaining);
     }
     elapsedTimeText.textContent = `Elapsed: ${formatTime(elapsed)} / ${formatTime(total)}`;
     passingPeriodText.textContent = "";
@@ -198,9 +236,16 @@ function updateCountdown() {
     countdownBar.style.backgroundColor = "var(--grey)";
     countdownBar.style.width = "100%";
     countdownBar.classList.remove("pulsing");
+    countdownText.style.display = "inline";
+    countdownTextOutside.style.display = "none";
     countdownText.textContent = "[translate:Passing Period]";
+
+    const remainingFull = Math.ceil(remaining);
+    const min = Math.floor(remainingFull / 60);
+    const sec = remainingFull % 60;
+    passingPeriodText.textContent = `Time left until ${nextPeriod.name}: ${min.toString().padStart(2,"0")}:${sec.toString().padStart(2,"0")}`;
+
     elapsedTimeText.textContent = "";
-    passingPeriodText.textContent = "Time left until " + nextPeriod.name + ": " + formatTime(remaining);
     handlePeriodChange(nextPeriod.name, false);
   }
 
@@ -221,11 +266,10 @@ function handlePeriodChange(name, isInPeriod) {
 }
 
 function playPeriodChime() {
-  const chime = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+  const chime = new Audio("calm_ringtone.mp3");
   chime.play().catch(() => {});
 }
 
-// Alarm timer 
 function updateAlarmDisplay(secondsLeft) {
   alarmTimerDisplay.textContent = formatTime(secondsLeft);
 }
@@ -246,8 +290,6 @@ function startAlarmCountdown(duration) {
   }, 1000);
 }
 
-// Session summary
-const sessionSummary = document.getElementById("sessionSummary");
 function checkSessionSummary() {
   if (!currentSchedule.length) return;
   const now = testTime !== null ? new Date(testTime) : new Date();
@@ -260,11 +302,11 @@ function checkSessionSummary() {
     sessionSummary.hidden = true;
   }
 }
+
 document.getElementById("closeSummaryBtn").addEventListener("click", () => {
   sessionSummary.hidden = true;
 });
 
-// Resize Canva frame
 function resizeCanvaFrame() {
   const header = document.querySelector('header');
   const countdownSection = document.getElementById('countdownSection');
@@ -272,21 +314,17 @@ function resizeCanvaFrame() {
 
   const headerHeight = header.offsetHeight;
   const countdownHeight = countdownSection.offsetHeight;
-  const chrome = 32; 
+  const chrome = 32;
 
-  const height =
-    window.innerHeight - headerHeight - countdownHeight - chrome;
-
+  const height = window.innerHeight - headerHeight - countdownHeight - chrome;
   canvaFrame.style.height = height > 200 ? `${height}px` : "200px";
 }
 
-// Elements for test mode
 const testHour = document.getElementById("testHour");
 const testMinute = document.getElementById("testMinute");
 const setTestTimeBtn = document.getElementById("setTestTimeBtn");
 const clearTestTimeBtn = document.getElementById("clearTestTimeBtn");
 
-// Event listeners
 scheduleSelect.addEventListener("change", () => {
   currentScheduleKey = scheduleSelect.value;
   updateSchedule();
@@ -354,5 +392,12 @@ window.addEventListener('DOMContentLoaded', () => {
   updateSchedule();
   updateCountdown();
   setInterval(updateCountdown, 1000);
+  setInterval(updateCurrentTime, 1000);
   resizeCanvaFrame();
 });
+
+function updateCurrentTime() {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+  currentTimeDisplay.textContent = timeStr;
+}

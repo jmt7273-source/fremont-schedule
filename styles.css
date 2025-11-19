@@ -55,6 +55,12 @@ header {
   cursor: pointer;
 }
 
+#currentTime {
+  min-width: 100px;
+  font-size: 1.25rem;
+  color: var(--text-color);
+}
+
 #scheduleSelect {
   flex-shrink: 0;
   min-width: 180px;
@@ -159,6 +165,19 @@ header {
   box-sizing: border-box;
   transition: width 1s linear, background-color 0.5s ease;
   border-radius: 6px;
+}
+
+/* Text outside the bar when bar is narrow */
+#countdownTextOutside {
+  position: absolute;
+  top: 50%;
+  right: 105%;
+  transform: translateY(-50%);
+  font-weight: bold;
+  font-size: 1.1rem;
+  white-space: nowrap;
+  color: var(--text-color);
+  display: none; /* Hide initially */
 }
 
 /* Pulsing animation for red phase */
