@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Countdown Timer - Fremont Pathfinders</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <img id="schoolLogo" src="FREMONT_SPIRIT_LOGO_MAIN.jpg" alt="Fremont Pathfinders Logo" tabindex="0" />
+    <label for="scheduleSelect">Select Schedule:</label>
+    <select id="scheduleSelect">
+      <option value="auto">Auto (Regular or Tuesday PD)</option>
+      <option value="regular">Regular Day</option>
+      <option value="tuesday">Tuesday PD Schedule</option>
+      <option value="minimum">Minimum Day</option>
+      <option value="shortened">Shortened Day</option>
+    </select>
+
+    <button id="darkModeToggle" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">🌙</button>
+
+    <div id="alarmTimerSection">
+      <label for="alarmDurationSelect">Alarm Timer:</label>
+      <select id="alarmDurationSelect">
+        <option value="120">2 minutes</option>
+        <option value="300">5 minutes</option>
+        <option value="600">10 minutes</option>
+        <option value="custom">Custom</option>
+      </select>
+      <div id="customAlarmInputs" style="display: none;">
+        <input type="number" id="customAlarmMinutes" min="0" max="59" value="1" aria-label="Custom alarm minutes" /> min
+        <input type="number" id="customAlarmSeconds" min="0" max="59" value="0" aria-label="Custom alarm seconds" /> sec
+      </div>
+      <button id="startAlarmBtn">Start</button>
+      <div id="alarmTimerDisplay" aria-live="polite" role="timer">00:00</div>
+      <audio id="alarmSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+      <label><input type="checkbox" id="periodSoundsToggle" checked /> Period Sounds</label>
+    </div>
+  </header>
+
+  <section id="countdownSection" aria-live="polite">
+    <div id="countdownBarContainer">
+      <div id="countdownBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+        <span id="countdownText"></span>
+      </div>
+      <div id="elapsedTimeText"></div>
+    </div>
+    <div id="passingPeriodText"></div>
+  </section>
+
+  <main id="canvaEmbedContainer">
+    <iframe id="canvaFrame"
+      src="https://www.canva.com/design/DAG4mPMfK-c/boRs9fOoR8SB-jmYFFAsFQ/view?embed"
+      allowfullscreen="allowfullscreen"
+      allow="fullscreen"
+      title="Timer Agendas Canva Presentation">
+    </iframe>
+  </main>
+
+  <section id="sessionSummary" hidden role="alert" aria-live="assertive">
+    <p>Great job making it through the day, Pathfinders!</p>
+    <button id="closeSummaryBtn">Close</button>
+  </section>
+
+  <div id="adminPanel" hidden role="region" aria-label="Admin Panel">
+    <h2>Admin Panel</h2>
+    <button id="resetTimerBtn">Reset Timer</button>
+    <div style="margin-top:1rem;">
+      <label>Test Mode (Simulate Time): </label>
+      <input type="number" id="testHour" min="0" max="23" style="width: 3rem;" aria-label="Test hour" /> :
+      <input type="number" id="testMinute" min="0" max="59" style="width: 3rem;" aria-label="Test minute" />
+      <button id="setTestTimeBtn">Set Test Time</button>
+      <button id="clearTestTimeBtn">Live Mode</button>
+    </div>
+    <button id="closeAdminBtn" style="margin-top:1rem;">Close Admin Panel</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
