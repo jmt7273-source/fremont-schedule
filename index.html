@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Classroom Timer Fremont</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <!-- Teacher Controls top-left -->
@@ -31,38 +31,51 @@
     </div>
     <div class="panel-row custom">
       <div class="quick-label">Custom timer</div>
-      <input id="teach-min" type="number" min="0" value="0" aria-label="minutes">
+      <input id="teach-min" type="number" min="0" value="0" aria-label="minutes" />
       <span>:</span>
-      <input id="teach-sec" type="number" min="0" max="59" value="0" aria-label="seconds">
+      <input id="teach-sec" type="number" min="0" max="59" value="0" aria-label="seconds" />
       <button id="teach-go">Start</button>
     </div>
     <div class="panel-row">
       <label for="music-toggle">
-        <input type="checkbox" id="music-toggle">
-        Play music
+        <input type="checkbox" id="music-toggle" /> Play music
       </label>
     </div>
   </div>
 
+  <!-- Visual Timer Upper Right -->
+  <div id="alarm-timer"></div>
+
   <!-- Main Timer Display -->
   <div id="display-container">
-    <div id="timer-label"></div>
-    <div id="timer-display">00:00</div>
+    <div id="timer-label">Class Timer</div>
+    <div id="timer-display">--:--</div>
     <div id="timer-controls">
       <button id="start-btn">Start</button>
       <button id="pause-btn">Pause</button>
       <button id="reset-btn">Reset</button>
     </div>
-    <div id="progress-bar"><div id="progress-fill"></div></div>
+    <div id="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div id="progress-fill">
+        <span id="progress-text"></span>
+      </div>
+    </div>
+    <div id="warning-text" aria-live="assertive"></div>
   </div>
 
-  <!-- Agenda Embed (Canva, corrected syntax) -->
+  <!-- Canva Embed -->
   <iframe
-    src="https://www.canva.com/design/your-design-id/view?embed"
+    id="canva-iframe"
+    src="https://www.canva.com/design/XXXXXXXXXX/view?embed"
     title="Timer Agendas Canva"
-    allowfullscreen
-    style="width:100%;height:500px;border:none;">
+    allowfullscreen>
   </iframe>
+
+  <!-- Embedded Alarm Sound -->
+  <audio id="alarm-sound" preload="auto">
+    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA/////wAA//8AAAD///8AAAAA" type="audio/wav">
+    Your browser does not support the audio element.
+  </audio>
 
   <script src="script.js"></script>
 </body>

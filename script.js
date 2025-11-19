@@ -50,14 +50,121 @@ const timerDisplay = document.getElementById("timer-display");
 const startBtn = document.getElementById("start-btn");
 const pauseBtn = document.getElementById("pause-btn");
 const resetBtn = document.getElementById("reset-btn");
-const progressBar = document.getElementById("progress-bar");
 const progressFill = document.getElementById("progress-fill");
+const progressText = document.getElementById("progress-text");
+const warningText = document.getElementById("warning-text");
 const timerLabel = document.getElementById("timer-label");
+const alarmTimer = document.getElementById("alarm-timer");
+const alarmSound = document.getElementById('alarm-sound');
 
 let timer = null;
-let timerDuration = 0;
-let timerRemaining = 0;
+let timerDuration = 300; // seconds
+let timerRemaining = 300;
+
+let alarmTimerCountdown = 0;
+let alarmTimerInterval = null;
+
 let scheduleMode = "auto";
+let currentSchedule = null;
+let currentPeriod = null;
+
+// Helper: Parse time string HH:MM to Date object today
+function parseTimeHM(hm) {
+  const [h, m] = hm.split(":").map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d;
+}
+
+// Helper: Get current period based on schedule and current time
+function getCurrentPeriod(schedule) {
+  const now = new Date();
+  for (const period of schedule) {
+    const start = parseTimeHM(period.start);
+    const end = parseTimeHM(period.end);
+    if (now >= start && now < end) {
+      return {...period, startTime: start, endTime: end};
+    }
+  }
+  return null;
+}
+
+// Update schedule based on day or override select
+function updateSchedule() {
+  if (scheduleMode === "regular" || scheduleMode === "tuesdayPD" || scheduleMode === "minimum" || scheduleMode === "shortened") {
+    currentSchedule = SCHEDULES[scheduleMode];
+  } else if (scheduleMode === "auto") {
+    if ((new Date()).getDay() === 2) { // Tuesday
+      currentSchedule = SCHEDULES.tuesdayPD;
+    } else {
+      currentSchedule = SCHEDULES.regular;
+    }
+  }
+}
+
+function secondsBetween(date1, date2) {
+  return Math.floor((date2 - date1) / 1000);
+}
+
+function updateCurrentPeriod() {
+  currentPeriod = getCurrentPeriod(currentSchedule);
+  if (!currentPeriod) {
+    timerLabel.textContent = "No Current Period";
+    timerDisplay.textContent = "--:--";
+    progressFill.style.width = "0%";
+    progressFill.style.backgroundColor = "var(--green)";
+    progressText.textContent = "";
+    warningText.textContent = "";
+    return false;
+  }
+  timerLabel.textContent = currentPeriod.name;
+  return true;
+}
+
+// Update countdown based on period time
+function updateCountdown() {
+  if (!currentPeriod) return;
+  const now = new Date();
+  const secondsLeft = secondsBetween(now, currentPeriod.endTime);
+  const totalSeconds = secondsBetween(currentPeriod.startTime, currentPeriod.endTime);
+
+  timerDuration = totalSeconds;
+  timerRemaining = secondsLeft;
+
+  // Format minutes:seconds
+  const mins = Math.floor(timerRemaining / 60);
+  const secs = timerRemaining % 60;
+  timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+  // Progress bar width
+  const progressPercent = ((timerDuration - timerRemaining) / timerDuration) * 100;
+  progressFill.style.width = `${progressPercent}%`;
+
+  // Alert first and last 15 minutes: change bar color and show warning text
+  if (timerRemaining <= 15 * 60 || timerRemaining >= timerDuration - 15 * 60) {
+    progressFill.style.backgroundColor = "var(--red)";
+    let warningMinutesLeft;
+    if (timerRemaining <= 15 * 60) {
+      warningMinutesLeft = Math.ceil(timerRemaining / 60);
+      warningText.textContent = `No Bathroom or Passes - ${warningMinutesLeft} min Left`;
+    } else {
+      warningMinutesLeft = Math.ceil((timerDuration - timerRemaining) / 60);
+      warningText.textContent = `No Bathroom or Passes - ${warningMinutesLeft} min Passed`;
+    }
+    // Show text centered inside progress bar too
+    progressText.textContent = warningText.textContent;
+  } else {
+    progressFill.style.backgroundColor = "var(--green)";
+    warningText.textContent = "";
+    progressText.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+}
+
+// Main periodic update to refresh timer
+function periodicUpdate() {
+  if (!updateCurrentPeriod()) return;
+  updateCountdown();
+}
 
 // Teacher panel toggle
 teacherBtn.addEventListener("click", () => {
@@ -67,94 +174,92 @@ teacherBtn.addEventListener("click", () => {
   teacherPanel.classList.toggle("open");
 });
 
-// Schedule override
+// Schedule override change event
 overrideSelect.addEventListener("change", () => {
   scheduleMode = overrideSelect.value;
   updateSchedule();
+  periodicUpdate();
 });
 
-// Quick presets
+// Quick preset timers
 quickPresets.forEach(btn => {
   btn.addEventListener("click", () => {
     const seconds = parseInt(btn.dataset.sec, 10);
-    startTimer(seconds);
+    startVisualTimer(seconds);
   });
 });
 
-// Custom timer
+// Custom timer start
 teachGoBtn.addEventListener("click", () => {
   const min = parseInt(teachMinInput.value, 10) || 0;
   const sec = parseInt(teachSecInput.value, 10) || 0;
-  startTimer(min * 60 + sec);
+  startVisualTimer(min * 60 + sec);
 });
 
-// Timer control buttons
-startBtn.addEventListener("click", () => resumeTimer());
-pauseBtn.addEventListener("click", () => pauseTimer());
-resetBtn.addEventListener("click", () => resetTimer());
+// Visual timer buttons
+startBtn.addEventListener("click", () => resumeVisualTimer());
+pauseBtn.addEventListener("click", () => pauseVisualTimer());
+resetBtn.addEventListener("click", () => resetVisualTimer());
 
-// Timer logic
-function startTimer(seconds) {
-  if (timer) clearInterval(timer);
-  timerDuration = timerRemaining = seconds;
-  renderTimer();
-  timer = setInterval(() => {
-    if (timerRemaining > 0) {
-      timerRemaining--;
-      renderTimer();
+// Visual timer variables and functions (upper right corner timer with alarm)
+let visualTimerInterval = null;
+let visualTimerRemaining = 0;
+
+function startVisualTimer(seconds) {
+  if (visualTimerInterval) clearInterval(visualTimerInterval);
+  visualTimerRemaining = seconds;
+  updateVisualTimerDisplay();
+  visualTimerInterval = setInterval(() => {
+    if (visualTimerRemaining > 0) {
+      visualTimerRemaining--;
+      updateVisualTimerDisplay();
     } else {
-      clearInterval(timer);
-      timer = null;
+      clearInterval(visualTimerInterval);
+      visualTimerInterval = null;
+      playAlarm();
     }
   }, 1000);
 }
 
-function resumeTimer() {
-  if (timer || timerRemaining <= 0) return;
-  timer = setInterval(() => {
-    if (timerRemaining > 0) {
-      timerRemaining--;
-      renderTimer();
+function resumeVisualTimer() {
+  if (visualTimerInterval || visualTimerRemaining <= 0) return;
+  visualTimerInterval = setInterval(() => {
+    if (visualTimerRemaining > 0) {
+      visualTimerRemaining--;
+      updateVisualTimerDisplay();
     } else {
-      clearInterval(timer);
-      timer = null;
+      clearInterval(visualTimerInterval);
+      visualTimerInterval = null;
+      playAlarm();
     }
   }, 1000);
 }
 
-function pauseTimer() {
-  if (timer) clearInterval(timer);
-  timer = null;
+function pauseVisualTimer() {
+  if (visualTimerInterval) clearInterval(visualTimerInterval);
+  visualTimerInterval = null;
 }
 
-function resetTimer() {
-  timerRemaining = timerDuration;
-  renderTimer();
+function resetVisualTimer() {
+  if (visualTimerInterval) clearInterval(visualTimerInterval);
+  visualTimerRemaining = 0;
+  updateVisualTimerDisplay();
 }
 
-function renderTimer() {
-  const min = Math.floor(timerRemaining / 60).toString().padStart(2, "0");
-  const sec = (timerRemaining % 60).toString().padStart(2, "0");
-  timerDisplay.textContent = `${min}:${sec}`;
-  progressFill.style.width = timerDuration ? `${((timerDuration - timerRemaining)/timerDuration) * 100}%` : "0%";
+function updateVisualTimerDisplay() {
+  const min = Math.floor(visualTimerRemaining / 60);
+  const sec = visualTimerRemaining % 60;
+  alarmTimer.textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
 }
 
-// Schedule logic
-function updateSchedule() {
-  let today = new Date();
-  let schedule;
-  if (scheduleMode === "regular" || scheduleMode === "tuesdayPD" || scheduleMode === "minimum" || scheduleMode === "shortened") {
-    schedule = SCHEDULES[scheduleMode];
-  } else {
-    // Auto: use day of week
-    if (today.getDay() === 2) {
-      schedule = SCHEDULES.tuesdayPD;
-    } else {
-      schedule = SCHEDULES.regular;
-    }
+function playAlarm() {
+  if(alarmSound){
+    alarmSound.play().catch(() => {}); // play and ignore errors (usually browser restrictions on autoplay)
   }
-  // You can use `schedule` as needed—render it in UI, etc.
 }
 
-// INIT
+// Initialize on page load
 updateSchedule();
+periodicUpdate();
+setInterval(periodicUpdate, 1000);
+updateVisualTimerDisplay();

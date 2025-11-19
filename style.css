@@ -5,6 +5,7 @@
   --gray: #d1d5db;
   --white: #ffffff;
   --dark: #0f172a;
+  --darkred: #b22222;
 }
 
 html, body {
@@ -34,7 +35,6 @@ html, body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.12);
 }
 
-/* Panel styling */
 .teacher-panel {
   position: fixed;
   left: 12px;
@@ -52,6 +52,7 @@ html, body {
   opacity: 0;
   transition: transform .28s ease, opacity .28s ease;
 }
+
 .teacher-panel.open {
   transform: translateY(0) scaleY(1);
   opacity: 1;
@@ -64,11 +65,11 @@ html, body {
   margin-bottom: 8px;
   flex-wrap: wrap;
 }
+
 .teacher-panel .panel-row.custom {
   flex-direction: row;
 }
 
-/* Timer display */
 #display-container {
   margin: 80px 0 0 0;
   background: var(--gray);
@@ -78,35 +79,80 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 250px;
 }
 
 #timer-label {
   font-size: 1.3em;
   font-weight: bold;
 }
+
 #timer-display {
   font-size: 3em;
   margin: 10px 0;
 }
+
 #timer-controls {
   display: flex;
   gap: 10px;
 }
+
 #timer-controls button {
   font-size: 1em;
 }
 
 #progress-bar {
-  width: 100%;
-  height: 8px;
+  width: 280px;
+  height: 30px;
   background: var(--gray);
-  border-radius: 4px;
+  border-radius: 15px;
   margin: 15px 0;
   overflow: hidden;
+  position: relative;
 }
+
 #progress-fill {
-  width: 0%;
   height: 100%;
+  width: 0%;
   background: var(--green);
-  transition: width 0.2s linear;
+  transition: width 0.3s linear, background-color 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--white);
+  font-weight: 700;
+  font-size: 1.1em;
+  border-radius: 15px;
+  white-space: nowrap;
+  padding: 0 10px;
+}
+
+#warning-text {
+  text-align: center;
+  font-weight: bold;
+  color: var(--darkred);
+  min-height: 1.5em;
+}
+
+#iframe, iframe#canva-iframe {
+  flex-grow: 1;
+  width: 100%;
+  border: none;
+  margin-top: 5px;
+}
+
+/* Upper-right visual timer */
+#alarm-timer {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  background: var(--burgundy);
+  color: var(--white);
+  padding: 8px 15px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.2em;
+  min-width: 70px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
 }
