@@ -1,81 +1,55 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Classroom Timer Fremont</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Countdown Timer - Fremont Pathfinders</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Teacher Controls top-left -->
-  <button id="teacher-btn" class="teacher-btn" aria-expanded="false">Teacher Controls</button>
-  <div id="teacher-panel" class="teacher-panel" aria-hidden="true">
-    <div class="panel-row">
-      <label for="override-select">Schedule</label>
-      <select id="override-select">
-        <option value="auto">Auto (weekday)</option>
-        <option value="regular">Regular</option>
-        <option value="tuesdayPD">Tuesday PD</option>
-        <option value="minimum">Minimum Day</option>
-        <option value="shortened">Shortened Day</option>
-      </select>
-    </div>
-    <div class="panel-row">
-      <div class="quick-label">Quick timers</div>
-      <div class="quick-buttons">
-        <button class="preset" data-sec="300">5:00</button>
-        <button class="preset" data-sec="600">10:00</button>
-        <button class="preset" data-sec="900">15:00</button>
-        <button class="preset" data-sec="1800">30:00</button>
+  <header>
+    <h1>Fremont Pathfinders Timer</h1>
+    <label for="scheduleSelect">Select Schedule:</label>
+    <select id="scheduleSelect">
+      <option value="auto">Auto (Regular or Tuesday PD)</option>
+      <option value="regular">Regular Day</option>
+      <option value="tuesday">Tuesday PD Schedule</option>
+      <option value="minimum">Minimum Day</option>
+      <option value="shortened">Shortened Day</option>
+    </select>
+  </header>
+
+  <section id="countdownSection">
+    <div id="countdownBarContainer">
+      <div id="countdownBar">
+        <span id="countdownText"></span>
       </div>
     </div>
-    <div class="panel-row custom">
-      <div class="quick-label">Custom timer</div>
-      <input id="teach-min" type="number" min="0" value="0" aria-label="minutes" />
-      <span>:</span>
-      <input id="teach-sec" type="number" min="0" max="59" value="0" aria-label="seconds" />
-      <button id="teach-go">Start</button>
-    </div>
-    <div class="panel-row">
-      <label for="music-toggle">
-        <input type="checkbox" id="music-toggle" /> Play music
-      </label>
-    </div>
-  </div>
+    <div id="passingPeriodText"></div>
+  </section>
 
-  <!-- Visual Timer Upper Right -->
-  <div id="alarm-timer"></div>
+  <section id="alarmTimerSection">
+    <label for="alarmDurationSelect">Alarm Timer:</label>
+    <select id="alarmDurationSelect">
+      <option value="120">2 minutes</option>
+      <option value="300">5 minutes</option>
+      <option value="600">10 minutes</option>
+      <option value="custom">Custom</option>
+    </select>
+    <input type="number" id="customAlarmInput" min="1" max="3600" value="60" style="display:none;" /> seconds
+    <button id="startAlarmBtn">Start</button>
+    <div id="alarmTimerDisplay">00:00</div>
+    <audio id="alarmSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+  </section>
 
-  <!-- Main Timer Display -->
-  <div id="display-container">
-    <div id="timer-label">Class Timer</div>
-    <div id="timer-display">--:--</div>
-    <div id="timer-controls">
-      <button id="start-btn">Start</button>
-      <button id="pause-btn">Pause</button>
-      <button id="reset-btn">Reset</button>
+  <main id="canvaEmbedContainer">
+    <div style="position: relative; width: 100%; height: 0; padding-top: 56.2500%; padding-bottom: 0; box-shadow: 0 2px 8px 0 rgba(63,69,81,0.16); margin-top: 1.6em; margin-bottom: 0.9em; overflow: hidden; border-radius: 8px; will-change: transform;">
+      <iframe loading="lazy" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; border: none; padding: 0;margin: 0;"
+        src="https://www.canva.com/design/DAG4mPMfK-c/boRs9fOoR8SB-jmYFFAsFQ/view?embed" allowfullscreen="allowfullscreen" allow="fullscreen">
+      </iframe>
     </div>
-    <div id="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-      <div id="progress-fill">
-        <span id="progress-text"></span>
-      </div>
-    </div>
-    <div id="warning-text" aria-live="assertive"></div>
-  </div>
-
-  <!-- Canva Embed -->
-  <iframe
-    id="canva-iframe"
-    src="https://www.canva.com/design/XXXXXXXXXX/view?embed"
-    title="Timer Agendas Canva"
-    allowfullscreen>
-  </iframe>
-
-  <!-- Embedded Alarm Sound -->
-  <audio id="alarm-sound" preload="auto">
-    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA/////wAA//8AAAD///8AAAAA" type="audio/wav">
-    Your browser does not support the audio element.
-  </audio>
+    <a href="https://www.canva.com/design/DAG4mPMfK-c/boRs9fOoR8SB-jmYFFAsFQ/view?utm_content=DAG4mPMfK-c&utm_campaign=designshare&utm_medium=embeds&utm_source=link" target="_blank" rel="noopener">Timer Agendas</a> by JOSE TORRES
+  </main>
 
   <script src="script.js"></script>
 </body>

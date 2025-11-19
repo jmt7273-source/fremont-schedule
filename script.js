@@ -1,5 +1,6 @@
-// SCHEDULE CONFIGURATION
-const SCHEDULES = {
+// Schedules in 24-hour time as [start, end]
+// Output in minutes and seconds for countdowns
+const schedules = {
   regular: [
     { name: "Period 1", start: "08:30", end: "09:38" },
     { name: "Period 2", start: "09:44", end: "10:41" },
@@ -7,16 +8,16 @@ const SCHEDULES = {
     { name: "Lunch", start: "11:44", end: "12:14" },
     { name: "Period 4", start: "12:20", end: "13:17" },
     { name: "Period 5", start: "13:23", end: "14:20" },
-    { name: "Period 6", start: "14:26", end: "15:23" }
+    { name: "Period 6", start: "14:26", end: "15:23" },
   ],
-  tuesdayPD: [
+  tuesday: [
     { name: "Period 1", start: "08:30", end: "09:28" },
     { name: "Period 2", start: "09:34", end: "10:21" },
     { name: "Period 3", start: "10:27", end: "11:14" },
     { name: "Lunch", start: "11:14", end: "11:44" },
     { name: "Period 4", start: "11:50", end: "12:37" },
     { name: "Period 5", start: "12:43", end: "13:30" },
-    { name: "Period 6", start: "13:36", end: "14:23" }
+    { name: "Period 6", start: "13:36", end: "14:23" },
   ],
   minimum: [
     { name: "Period 1", start: "08:30", end: "09:18" },
@@ -25,7 +26,7 @@ const SCHEDULES = {
     { name: "Lunch", start: "10:40", end: "11:10" },
     { name: "Period 4", start: "11:16", end: "11:51" },
     { name: "Period 5", start: "11:57", end: "12:32" },
-    { name: "Period 6", start: "12:38", end: "13:13" }
+    { name: "Period 6", start: "12:38", end: "13:13" },
   ],
   shortened: [
     { name: "Period 1", start: "08:30", end: "09:28" },
@@ -34,232 +35,192 @@ const SCHEDULES = {
     { name: "Lunch", start: "11:12", end: "11:42" },
     { name: "Period 4", start: "11:48", end: "12:34" },
     { name: "Period 5", start: "12:40", end: "13:26" },
-    { name: "Period 6", start: "13:32", end: "14:18" }
-  ]
+    { name: "Period 6", start: "13:32", end: "14:18" },
+  ],
 };
 
-const teacherBtn = document.getElementById("teacher-btn");
-const teacherPanel = document.getElementById("teacher-panel");
-const overrideSelect = document.getElementById("override-select");
-const quickPresets = document.querySelectorAll(".preset");
-const teachMinInput = document.getElementById("teach-min");
-const teachSecInput = document.getElementById("teach-sec");
-const teachGoBtn = document.getElementById("teach-go");
-const musicToggle = document.getElementById("music-toggle");
-const timerDisplay = document.getElementById("timer-display");
-const startBtn = document.getElementById("start-btn");
-const pauseBtn = document.getElementById("pause-btn");
-const resetBtn = document.getElementById("reset-btn");
-const progressFill = document.getElementById("progress-fill");
-const progressText = document.getElementById("progress-text");
-const warningText = document.getElementById("warning-text");
-const timerLabel = document.getElementById("timer-label");
-const alarmTimer = document.getElementById("alarm-timer");
-const alarmSound = document.getElementById('alarm-sound');
-
-let timer = null;
-let timerDuration = 300; // seconds
-let timerRemaining = 300;
-
-let alarmTimerCountdown = 0;
-let alarmTimerInterval = null;
-
-let scheduleMode = "auto";
-let currentSchedule = null;
-let currentPeriod = null;
-
-// Helper: Parse time string HH:MM to Date object today
-function parseTimeHM(hm) {
-  const [h, m] = hm.split(":").map(Number);
-  const d = new Date();
-  d.setHours(h, m, 0, 0);
-  return d;
-}
-
-// Helper: Get current period based on schedule and current time
-function getCurrentPeriod(schedule) {
+// Parse a time string "HH:mm" into a Date object for today
+function parseTimeToDate(timeStr) {
+  const [h, m] = timeStr.split(":").map(Number);
   const now = new Date();
-  for (const period of schedule) {
-    const start = parseTimeHM(period.start);
-    const end = parseTimeHM(period.end);
-    if (now >= start && now < end) {
-      return {...period, startTime: start, endTime: end};
-    }
-  }
-  return null;
+  now.setHours(h, m, 0, 0);
+  return now;
 }
 
-// Update schedule based on day or override select
+// Calculate difference in seconds
+function diffSeconds(date1, date2) {
+  return (date2.getTime() - date1.getTime()) / 1000;
+}
+
+// Format seconds to mm:ss
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
+}
+
+// State variables
+let currentScheduleKey = "auto";
+let currentSchedule = [];
+let countdownInterval;
+let alarmInterval;
+let alarmTimeLeft = 0;
+
+const scheduleSelect = document.getElementById("scheduleSelect");
+const countdownBar = document.getElementById("countdownBar");
+const countdownText = document.getElementById("countdownText");
+const passingPeriodText = document.getElementById("passingPeriodText");
+
+const alarmDurationSelect = document.getElementById("alarmDurationSelect");
+const customAlarmInput = document.getElementById("customAlarmInput");
+const startAlarmBtn = document.getElementById("startAlarmBtn");
+const alarmTimerDisplay = document.getElementById("alarmTimerDisplay");
+const alarmSound = document.getElementById("alarmSound");
+
+// Determine today's schedule key automatically
+function getTodayScheduleKey() {
+  const today = new Date();
+  // Tuesday is 2 (Sunday=0)
+  if (today.getDay() === 2) return "tuesday";
+  return "regular";
+}
+
 function updateSchedule() {
-  if (scheduleMode === "regular" || scheduleMode === "tuesdayPD" || scheduleMode === "minimum" || scheduleMode === "shortened") {
-    currentSchedule = SCHEDULES[scheduleMode];
-  } else if (scheduleMode === "auto") {
-    if ((new Date()).getDay() === 2) { // Tuesday
-      currentSchedule = SCHEDULES.tuesdayPD;
-    } else {
-      currentSchedule = SCHEDULES.regular;
-    }
-  }
-}
-
-function secondsBetween(date1, date2) {
-  return Math.floor((date2 - date1) / 1000);
-}
-
-function updateCurrentPeriod() {
-  currentPeriod = getCurrentPeriod(currentSchedule);
-  if (!currentPeriod) {
-    timerLabel.textContent = "No Current Period";
-    timerDisplay.textContent = "--:--";
-    progressFill.style.width = "0%";
-    progressFill.style.backgroundColor = "var(--green)";
-    progressText.textContent = "";
-    warningText.textContent = "";
-    return false;
-  }
-  timerLabel.textContent = currentPeriod.name;
-  return true;
-}
-
-// Update countdown based on period time
-function updateCountdown() {
-  if (!currentPeriod) return;
-  const now = new Date();
-  const secondsLeft = secondsBetween(now, currentPeriod.endTime);
-  const totalSeconds = secondsBetween(currentPeriod.startTime, currentPeriod.endTime);
-
-  timerDuration = totalSeconds;
-  timerRemaining = secondsLeft;
-
-  // Format minutes:seconds
-  const mins = Math.floor(timerRemaining / 60);
-  const secs = timerRemaining % 60;
-  timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-
-  // Progress bar width
-  const progressPercent = ((timerDuration - timerRemaining) / timerDuration) * 100;
-  progressFill.style.width = `${progressPercent}%`;
-
-  // Alert first and last 15 minutes: change bar color and show warning text
-  if (timerRemaining <= 15 * 60 || timerRemaining >= timerDuration - 15 * 60) {
-    progressFill.style.backgroundColor = "var(--red)";
-    let warningMinutesLeft;
-    if (timerRemaining <= 15 * 60) {
-      warningMinutesLeft = Math.ceil(timerRemaining / 60);
-      warningText.textContent = `No Bathroom or Passes - ${warningMinutesLeft} min Left`;
-    } else {
-      warningMinutesLeft = Math.ceil((timerDuration - timerRemaining) / 60);
-      warningText.textContent = `No Bathroom or Passes - ${warningMinutesLeft} min Passed`;
-    }
-    // Show text centered inside progress bar too
-    progressText.textContent = warningText.textContent;
+  if (currentScheduleKey === "auto") {
+    currentSchedule = schedules[getTodayScheduleKey()];
   } else {
-    progressFill.style.backgroundColor = "var(--green)";
-    warningText.textContent = "";
-    progressText.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    currentSchedule = schedules[currentScheduleKey];
   }
 }
 
-// Main periodic update to refresh timer
-function periodicUpdate() {
-  if (!updateCurrentPeriod()) return;
-  updateCountdown();
+// Find current period or passing period and update UI accordingly
+function updateCountdown() {
+  const now = new Date();
+  let currentPeriodIndex = -1;
+  let inPeriod = false;
+
+  // Find which period or passing period we are in
+  for (let i = 0; i < currentSchedule.length; i++) {
+    const period = currentSchedule[i];
+    const start = parseTimeToDate(period.start);
+    const end = parseTimeToDate(period.end);
+    if (now >= start && now <= end) {
+      currentPeriodIndex = i;
+      inPeriod = true;
+      break;
+    }
+    if (now > end && i < currentSchedule.length -1) {
+      const nextStart = parseTimeToDate(currentSchedule[i+1].start);
+      if (now < nextStart) {
+        currentPeriodIndex = i;
+        inPeriod = false; // Passing period between periods
+        break;
+      }
+    }
+  }
+
+  if (currentPeriodIndex === -1) {
+    // Before first period or after last period
+    countdownBar.style.backgroundColor = "var(--color-grey)";
+    countdownText.textContent = "No active periods now";
+    passingPeriodText.textContent = "";
+    return;
+  }
+
+  if (inPeriod) {
+    const period = currentSchedule[currentPeriodIndex];
+    const start = parseTimeToDate(period.start);
+    const end = parseTimeToDate(period.end);
+    const elapsed = (now.getTime() - start.getTime()) / 1000;
+    const total = (end.getTime() - start.getTime()) / 1000;
+    const remaining = (end.getTime() - now.getTime()) / 1000;
+
+    // Determine color and message
+    const redThreshold = 15 * 60; // 15 minutes in seconds
+    if (elapsed < redThreshold) {
+      // First 15 minutes - red
+      countdownBar.style.backgroundColor = "var(--color-red)";
+      countdownText.textContent = `[translate:No Bathroom or Passes] - ${Math.ceil((redThreshold - elapsed) / 60)} min`;
+    } else if (remaining < redThreshold) {
+      // Last 15 minutes - red
+      countdownBar.style.backgroundColor = "var(--color-red)";
+      countdownText.textContent = `[translate:No Bathroom or Passes] - ${Math.ceil(remaining / 60)} min`;
+    } else {
+      countdownBar.style.backgroundColor = "var(--color-green)";
+      countdownText.textContent = `${period.name}: ${formatTime(remaining)}`;
+    }
+
+    passingPeriodText.textContent = "";
+  } else {
+    // Passing period
+    const period = currentSchedule[currentPeriodIndex];
+    const nextPeriod = currentSchedule[currentPeriodIndex + 1];
+    const periodEnd = parseTimeToDate(period.end);
+    const nextStart = parseTimeToDate(nextPeriod.start);
+    const remaining = (nextStart.getTime() - now.getTime()) / 1000;
+
+    countdownBar.style.backgroundColor = "var(--color-grey)";
+    countdownText.textContent = `[translate:Passing Period]`;
+    passingPeriodText.textContent = `Time left until ${nextPeriod.name}: ${formatTime(remaining)}`;
+  }
 }
 
-// Teacher panel toggle
-teacherBtn.addEventListener("click", () => {
-  const expanded = teacherBtn.getAttribute("aria-expanded") === "true";
-  teacherBtn.setAttribute("aria-expanded", String(!expanded));
-  teacherPanel.setAttribute("aria-hidden", String(expanded));
-  teacherPanel.classList.toggle("open");
-});
+// Alarm timer functions
 
-// Schedule override change event
-overrideSelect.addEventListener("change", () => {
-  scheduleMode = overrideSelect.value;
+function updateAlarmDisplay(secondsLeft) {
+  alarmTimerDisplay.textContent = formatTime(secondsLeft);
+}
+
+function startAlarmCountdown(duration) {
+  alarmTimeLeft = duration;
+  updateAlarmDisplay(alarmTimeLeft);
+
+  if (alarmInterval) clearInterval(alarmInterval);
+  alarmInterval = setInterval(() => {
+    alarmTimeLeft--;
+    if (alarmTimeLeft <= 0) {
+      clearInterval(alarmInterval);
+      alarmTimerDisplay.textContent = "00:00";
+      alarmSound.play();
+      return;
+    }
+    updateAlarmDisplay(alarmTimeLeft);
+  }, 1000);
+}
+
+// Event listeners
+
+scheduleSelect.addEventListener("change", () => {
+  currentScheduleKey = scheduleSelect.value;
   updateSchedule();
-  periodicUpdate();
+  updateCountdown();
 });
 
-// Quick preset timers
-quickPresets.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const seconds = parseInt(btn.dataset.sec, 10);
-    startVisualTimer(seconds);
-  });
-});
-
-// Custom timer start
-teachGoBtn.addEventListener("click", () => {
-  const min = parseInt(teachMinInput.value, 10) || 0;
-  const sec = parseInt(teachSecInput.value, 10) || 0;
-  startVisualTimer(min * 60 + sec);
-});
-
-// Visual timer buttons
-startBtn.addEventListener("click", () => resumeVisualTimer());
-pauseBtn.addEventListener("click", () => pauseVisualTimer());
-resetBtn.addEventListener("click", () => resetVisualTimer());
-
-// Visual timer variables and functions (upper right corner timer with alarm)
-let visualTimerInterval = null;
-let visualTimerRemaining = 0;
-
-function startVisualTimer(seconds) {
-  if (visualTimerInterval) clearInterval(visualTimerInterval);
-  visualTimerRemaining = seconds;
-  updateVisualTimerDisplay();
-  visualTimerInterval = setInterval(() => {
-    if (visualTimerRemaining > 0) {
-      visualTimerRemaining--;
-      updateVisualTimerDisplay();
-    } else {
-      clearInterval(visualTimerInterval);
-      visualTimerInterval = null;
-      playAlarm();
-    }
-  }, 1000);
-}
-
-function resumeVisualTimer() {
-  if (visualTimerInterval || visualTimerRemaining <= 0) return;
-  visualTimerInterval = setInterval(() => {
-    if (visualTimerRemaining > 0) {
-      visualTimerRemaining--;
-      updateVisualTimerDisplay();
-    } else {
-      clearInterval(visualTimerInterval);
-      visualTimerInterval = null;
-      playAlarm();
-    }
-  }, 1000);
-}
-
-function pauseVisualTimer() {
-  if (visualTimerInterval) clearInterval(visualTimerInterval);
-  visualTimerInterval = null;
-}
-
-function resetVisualTimer() {
-  if (visualTimerInterval) clearInterval(visualTimerInterval);
-  visualTimerRemaining = 0;
-  updateVisualTimerDisplay();
-}
-
-function updateVisualTimerDisplay() {
-  const min = Math.floor(visualTimerRemaining / 60);
-  const sec = visualTimerRemaining % 60;
-  alarmTimer.textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-}
-
-function playAlarm() {
-  if(alarmSound){
-    alarmSound.play().catch(() => {}); // play and ignore errors (usually browser restrictions on autoplay)
+alarmDurationSelect.addEventListener("change", () => {
+  if (alarmDurationSelect.value === "custom") {
+    customAlarmInput.style.display = "inline-block";
+  } else {
+    customAlarmInput.style.display = "none";
   }
-}
+});
 
-// Initialize on page load
+startAlarmBtn.addEventListener("click", () => {
+  let duration;
+  if (alarmDurationSelect.value === "custom") {
+    const val = parseInt(customAlarmInput.value, 10);
+    if (isNaN(val) || val < 1) {
+      alert("Please enter a valid custom time in seconds.");
+      return;
+    }
+    duration = val;
+  } else {
+    duration = parseInt(alarmDurationSelect.value, 10);
+  }
+  startAlarmCountdown(duration);
+});
+
+// Initial setup
+currentScheduleKey = "auto";
 updateSchedule();
-periodicUpdate();
-setInterval(periodicUpdate, 1000);
-updateVisualTimerDisplay();
+updateCountdown();
+setInterval(updateCountdown, 1000);
