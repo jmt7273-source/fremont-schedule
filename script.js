@@ -1,403 +1,353 @@
-const schedules = {
+/* ===========
+   CONFIG & SCHEDULES
+   =========== */
+const SCHEDULES = {
   regular: [
     { name: "Period 1", start: "08:30", end: "09:38" },
     { name: "Period 2", start: "09:44", end: "10:41" },
     { name: "Period 3", start: "10:47", end: "11:44" },
-    { name: "Lunch", start: "11:44", end: "12:14" },
+    { name: "Lunch",    start: "11:44", end: "12:14" },
     { name: "Period 4", start: "12:20", end: "13:17" },
     { name: "Period 5", start: "13:23", end: "14:20" },
-    { name: "Period 6", start: "14:26", end: "15:23" },
+    { name: "Period 6", start: "14:26", end: "15:23" }
   ],
-  tuesday: [
+  tuesdayPD: [
     { name: "Period 1", start: "08:30", end: "09:28" },
     { name: "Period 2", start: "09:34", end: "10:21" },
     { name: "Period 3", start: "10:27", end: "11:14" },
-    { name: "Lunch", start: "11:14", end: "11:44" },
+    { name: "Lunch",    start: "11:14", end: "11:44" },
     { name: "Period 4", start: "11:50", end: "12:37" },
     { name: "Period 5", start: "12:43", end: "13:30" },
-    { name: "Period 6", start: "13:36", end: "14:23" },
+    { name: "Period 6", start: "13:36", end: "14:23" }
   ],
   minimum: [
     { name: "Period 1", start: "08:30", end: "09:18" },
     { name: "Period 2", start: "09:24", end: "09:59" },
     { name: "Period 3", start: "10:05", end: "10:40" },
-    { name: "Lunch", start: "10:40", end: "11:10" },
+    { name: "Lunch",    start: "10:40", end: "11:10" },
     { name: "Period 4", start: "11:16", end: "11:51" },
     { name: "Period 5", start: "11:57", end: "12:32" },
-    { name: "Period 6", start: "12:38", end: "13:13" },
+    { name: "Period 6", start: "12:38", end: "13:13" }
   ],
   shortened: [
     { name: "Period 1", start: "08:30", end: "09:28" },
     { name: "Period 2", start: "09:34", end: "10:20" },
     { name: "Period 3", start: "10:26", end: "11:12" },
-    { name: "Lunch", start: "11:12", end: "11:42" },
+    { name: "Lunch",    start: "11:12", end: "11:42" },
     { name: "Period 4", start: "11:48", end: "12:34" },
     { name: "Period 5", start: "12:40", end: "13:26" },
-    { name: "Period 6", start: "13:32", end: "14:18" },
-  ],
+    { name: "Period 6", start: "13:32", end: "14:18" }
+  ]
 };
 
-function parseTimeToDate(timeStr) {
-  const [h, m] = timeStr.split(":").map(Number);
-  const now = new Date();
-  now.setHours(h, m, 0, 0);
-  return now;
+/* ===========
+   DOM References
+   =========== */
+const teacherBtn = document.getElementById("teacher-btn");
+const teacherPanel = document.getElementById("teacher-panel");
+const closePanelBtn = document.getElementById("close-panel");
+const overrideSelect = document.getElementById("override-select");
+const fullscreenBtn = document.getElementById("fullscreen-btn");
+const alarmToggle = document.getElementById("alarm-toggle");
+const alarmVolume = document.getElementById("alarm-volume");
+
+const progressBar = document.getElementById("progress-bar");
+const barText = document.getElementById("bar-text");
+const periodInfo = document.getElementById("period-info");
+const liveClockEl = document.getElementById("live-clock");
+const bathroomBadge = document.getElementById("bathroom-badge");
+
+// class timer DOM
+const studentPresets = Array.from(document.querySelectorAll(".student-preset"));
+const teacherPresets = Array.from(document.querySelectorAll(".teacher-preset"));
+const customMin = document.getElementById("custom-min");
+const customSec = document.getElementById("custom-sec");
+const setCustomBtn = document.getElementById("set-custom");
+const startBtn = document.getElementById("start-btn");
+const pauseBtn = document.getElementById("pause-btn");
+const resetBtn = document.getElementById("reset-btn");
+const classCount = document.getElementById("class-count");
+
+const teachMin = document.getElementById("teach-min");
+const teachSec = document.getElementById("teach-sec");
+const teachSet = document.getElementById("teach-set");
+
+/* ===========
+   State
+   =========== */
+let scheduleMode = "auto"; // auto | regular | tuesdayPD | minimum | shortened
+let activeSchedule = (new Date().getDay() === 2) ? SCHEDULES.tuesdayPD : SCHEDULES.regular;
+
+// class timer state
+let classTimerTotal = 0;
+let classTimerRemaining = 0;
+let classTimerRunning = false;
+let classIntv = null;
+
+// audio
+let audioCtx = null;
+let alarmEnabled = true;
+let alarmGain = 0.2;
+
+/* ===========
+   Helpers
+   =========== */
+function parseHHMM(hhmm){
+  const [h,m] = hhmm.split(":").map(Number);
+  const d = new Date();
+  d.setHours(h,m,0,0);
+  d.setMilliseconds(0);
+  return d;
 }
-
-function formatTime(seconds) {
-  if (seconds < 0) seconds = 0;
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
+function formatMMSS(sec){
+  if (sec < 0) sec = 0;
+  const m = Math.floor(sec/60);
+  const s = Math.floor(sec % 60);
+  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
 }
-
-let currentScheduleKey = "auto";
-let currentSchedule = [];
-let countdownInterval;
-let alarmInterval;
-let alarmTimeLeft = 0;
-
-let testTime = null; // simulated time or null live time
-
-const scheduleSelect = document.getElementById("scheduleSelect");
-const countdownBar = document.getElementById("countdownBar");
-const countdownText = document.getElementById("countdownText");
-const countdownTextOutside = document.getElementById("countdownTextOutside");
-const elapsedTimeText = document.getElementById("elapsedTimeText");
-const passingPeriodText = document.getElementById("passingPeriodText");
-
-const alarmDurationSelect = document.getElementById("alarmDurationSelect");
-const customAlarmInputs = document.getElementById("customAlarmInputs");
-const customAlarmMinutes = document.getElementById("customAlarmMinutes");
-const customAlarmSeconds = document.getElementById("customAlarmSeconds");
-const startAlarmBtn = document.getElementById("startAlarmBtn");
-const alarmTimerDisplay = document.getElementById("alarmTimerDisplay");
-const alarmSound = document.getElementById("alarmSound");
-
-const darkModeBtn = document.getElementById("darkModeToggle");
-
-const sessionSummary = document.getElementById("sessionSummary");
-const closeSummaryBtn = document.getElementById("closeSummaryBtn");
-
-const schoolLogo = document.getElementById("schoolLogo");
-
-const periodSoundsToggle = document.getElementById("periodSoundsToggle");
-
-const adminPanel = document.getElementById("adminPanel");
-const resetTimerBtn = document.getElementById("resetTimerBtn");
-const closeAdminBtn = document.getElementById("closeAdminBtn");
-
-const currentTimeDisplay = document.getElementById("currentTime");
-
-function updateCurrentTime() {
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-  currentTimeDisplay.textContent = timeStr;
-}
-
-function setDarkMode(enabled) {
-  if (enabled) {
-    document.documentElement.setAttribute("data-theme", "dark");
-    darkModeBtn.textContent = "☀️";
-  } else {
-    document.documentElement.removeAttribute("data-theme");
-    darkModeBtn.textContent = "🌙";
+function initAudio(){
+  if (!audioCtx){
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e){ audioCtx = null; console.warn("Audio init failed", e); }
   }
-  localStorage.setItem("darkMode", enabled ? "true" : "false");
 }
 
-darkModeBtn.addEventListener("click", () => {
-  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-  setDarkMode(!isDark);
+/* ===========
+   Schedule & main loop
+   =========== */
+function autoSchedule(){ return (new Date().getDay() === 2) ? SCHEDULES.tuesdayPD : SCHEDULES.regular; }
+overrideSelect.value = "auto";
+
+overrideSelect.addEventListener("change", () => {
+  scheduleMode = overrideSelect.value;
+  if (scheduleMode === "auto") activeSchedule = autoSchedule();
+  else activeSchedule = SCHEDULES[scheduleMode];
 });
 
-if (localStorage.getItem("darkMode") === "true") {
-  setDarkMode(true);
-} else {
-  setDarkMode(false);
-}
+function updateClockAndSchedule(){
+  const now = new Date();
+  // live clock
+  liveClockEl.textContent = now.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
 
-function getTodayScheduleKey() {
-  const today = testTime !== null ? new Date(testTime) : new Date();
-  if (today.getDay() === 2) return "tuesday";
-  return "regular";
-}
+  // auto schedule mode
+  if (scheduleMode === "auto") activeSchedule = autoSchedule();
 
-function updateSchedule() {
-  if (currentScheduleKey === "auto") {
-    currentSchedule = schedules[getTodayScheduleKey()];
-  } else {
-    currentSchedule = schedules[currentScheduleKey];
-  }
-}
+  const nowMinutes = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
 
-function updateCountdown() {
-  const now = testTime !== null ? new Date(testTime) : new Date();
-  let currentPeriodIndex = -1;
-  let inPeriod = false;
+  let current = null;
+  let next = null;
 
-  for (let i = 0; i < currentSchedule.length; i++) {
-    const period = currentSchedule[i];
-    const start = parseTimeToDate(period.start);
-    const end = parseTimeToDate(period.end);
-    if (now >= start && now <= end) {
-      currentPeriodIndex = i;
-      inPeriod = true;
+  for (let i=0;i<activeSchedule.length;i++){
+    const p = activeSchedule[i];
+    const s = parseHHMM(p.start);
+    const e = parseHHMM(p.end);
+    const sM = s.getHours()*60 + s.getMinutes();
+    const eM = e.getHours()*60 + e.getMinutes();
+
+    if (nowMinutes >= sM && nowMinutes < eM){
+      current = {...p, start:s, end:e};
+      next = (i+1 < activeSchedule.length) ? activeSchedule[i+1] : null;
       break;
     }
-    if (now > end && i < currentSchedule.length - 1) {
-      const nextStart = parseTimeToDate(currentSchedule[i + 1].start);
-      if (now < nextStart) {
-        currentPeriodIndex = i;
-        inPeriod = false;
-        break;
-      }
+    if (nowMinutes < sM){
+      next = p;
+      break;
     }
   }
 
-  if (currentPeriodIndex === -1) {
-    countdownBar.style.backgroundColor = "var(--grey)";
-    countdownBar.style.width = "100%";
-    countdownBar.classList.remove("pulsing");
-    countdownText.textContent = "No active periods now";
-    countdownTextOutside.style.display = "none";
-    elapsedTimeText.textContent = "";
-    passingPeriodText.textContent = "";
-    lastPeriodName = null;
-    lastIsInPeriod = null;
+  // after school
+  if (!current && !next){
+    periodInfo.textContent = "School's Out!";
+    progressBar.style.width = "100%";
+    progressBar.style.background = "#6a0d15";
+    barText.textContent = "School's Out!";
+    bathroomBadge.hidden = true;
     return;
   }
 
-  const fullContainerWidth = countdownBar.parentElement.offsetWidth;
-  const widthPercent = (countdownBar.offsetWidth / fullContainerWidth) * 100;
-  const textTooSmall = widthPercent < 30;
+  // passing period
+  if (!current && next){
+    periodInfo.textContent = "Passing Period";
+    const diffSec = Math.max(0, Math.floor((parseHHMM(next.start) - now)/1000));
+    barText.textContent = formatMMSS(diffSec);
+    progressBar.style.width = "0%";
+    progressBar.style.background = "#9ca3af";
+    bathroomBadge.hidden = true;
+    return;
+  }
 
-  if (inPeriod) {
-    const period = currentSchedule[currentPeriodIndex];
-    const start = parseTimeToDate(period.start);
-    const end = parseTimeToDate(period.end);
-    const elapsed = (now.getTime() - start.getTime()) / 1000;
-    const total = (end.getTime() - start.getTime()) / 1000;
-    const remaining = (end.getTime() - now.getTime()) / 1000;
+  // during class
+  if (current){
+    const totalSec = Math.max(1, Math.floor((current.end - current.start)/1000));
+    const remainingSec = Math.max(0, Math.floor((current.end - now)/1000));
+    const elapsedSec = Math.max(0, Math.floor((now - current.start)/1000));
+    const percent = Math.max(0, Math.min(100, (elapsedSec / totalSec) * 100));
 
-    const redThreshold = 15 * 60;
-    const percentage = ((total - remaining) / total) * 100;
-    countdownBar.style.width = percentage + "%";
+    progressBar.style.width = percent + "%";
+    periodInfo.textContent = current.name;
 
-    if (elapsed < redThreshold) {
-      const message = `[translate:No Bathroom or Passes] - ${Math.ceil((redThreshold - elapsed) / 60)} min`;
-      if (textTooSmall) {
-        countdownText.style.display = "none";
-        countdownTextOutside.style.display = "inline";
-        countdownTextOutside.textContent = message;
-      } else {
-        countdownText.style.display = "inline";
-        countdownTextOutside.style.display = "none";
-        countdownText.textContent = message;
-      }
-      countdownBar.style.backgroundColor = "var(--red)";
-      countdownBar.classList.add("pulsing");
-    } else if (remaining < redThreshold) {
-      const message = `[translate:No Bathroom or Passes] - ${Math.ceil(remaining / 60)} min`;
-      if (textTooSmall) {
-        countdownText.style.display = "none";
-        countdownTextOutside.style.display = "inline";
-        countdownTextOutside.textContent = message;
-      } else {
-        countdownText.style.display = "inline";
-        countdownTextOutside.style.display = "none";
-        countdownText.textContent = message;
-      }
-      countdownBar.style.backgroundColor = "var(--red)";
-      countdownBar.classList.add("pulsing");
+    const timeText = formatMMSS(remainingSec);
+
+    if (elapsedSec <= 15*60 || remainingSec <= 15*60){
+      // restriction
+      progressBar.style.background = "var(--red)";
+      barText.textContent = `No Bathroom or Passes — ${timeText}`;
+      bathroomBadge.hidden = false;
+      bathroomBadge.textContent = `No Bathroom or Passes — ${timeText}`;
     } else {
-      const message = `${period.name}: ${formatTime(remaining)}`;
-      if (textTooSmall) {
-        countdownText.style.display = "none";
-        countdownTextOutside.style.display = "inline";
-        countdownTextOutside.textContent = message;
-      } else {
-        countdownText.style.display = "inline";
-        countdownTextOutside.style.display = "none";
-        countdownText.textContent = message;
-      }
-      countdownBar.style.backgroundColor = "var(--green)";
-      countdownBar.classList.remove("pulsing");
+      // normal
+      progressBar.style.background = "var(--green)";
+      barText.textContent = timeText;
+      bathroomBadge.hidden = true;
     }
-    elapsedTimeText.textContent = `Elapsed: ${formatTime(elapsed)} / ${formatTime(total)}`;
-    passingPeriodText.textContent = "";
-    handlePeriodChange(period.name, true);
-  } else {
-    const period = currentSchedule[currentPeriodIndex];
-    const nextPeriod = currentSchedule[currentPeriodIndex + 1];
-    const nextStart = parseTimeToDate(nextPeriod.start);
-    const remaining = (nextStart.getTime() - now.getTime()) / 1000;
-
-    countdownBar.style.backgroundColor = "var(--grey)";
-    countdownBar.style.width = "100%";
-    countdownBar.classList.remove("pulsing");
-    countdownText.style.display = "inline";
-    countdownTextOutside.style.display = "none";
-    countdownText.textContent = "[translate:Passing Period]";
-
-    const remainingFull = Math.ceil(remaining);
-    const min = Math.floor(remainingFull / 60);
-    const sec = remainingFull % 60;
-    passingPeriodText.textContent = `Time left until ${nextPeriod.name}: ${min.toString().padStart(2,"0")}:${sec.toString().padStart(2,"0")}`;
-
-    elapsedTimeText.textContent = "";
-    handlePeriodChange(nextPeriod.name, false);
-  }
-
-  checkSessionSummary();
-}
-
-let lastPeriodName = null;
-let lastIsInPeriod = null;
-
-function handlePeriodChange(name, isInPeriod) {
-  if (periodSoundsToggle.checked) {
-    if (name !== lastPeriodName || isInPeriod !== lastIsInPeriod) {
-      playPeriodChime();
-      lastPeriodName = name;
-      lastIsInPeriod = isInPeriod;
-    }
-  }
-}
-
-function playPeriodChime() {
-  const chime = new Audio("calm_ringtone.mp3");
-  chime.play().catch(() => {});
-}
-
-function updateAlarmDisplay(secondsLeft) {
-  alarmTimerDisplay.textContent = formatTime(secondsLeft);
-}
-
-function startAlarmCountdown(duration) {
-  alarmTimeLeft = duration;
-  updateAlarmDisplay(alarmTimeLeft);
-
-  if (alarmInterval) clearInterval(alarmInterval);
-  alarmInterval = setInterval(() => {
-    alarmTimeLeft--;
-    updateAlarmDisplay(alarmTimeLeft);
-    if (alarmTimeLeft <= 0) {
-      clearInterval(alarmInterval);
-      alarmTimerDisplay.textContent = "00:00";
-      alarmSound.play();
-    }
-  }, 1000);
-}
-
-function checkSessionSummary() {
-  if (!currentSchedule.length) return;
-  const now = testTime !== null ? new Date(testTime) : new Date();
-  const lastPeriod = currentSchedule[currentSchedule.length - 1];
-  const end = parseTimeToDate(lastPeriod.end);
-
-  if (now > end) {
-    sessionSummary.hidden = false;
-  } else {
-    sessionSummary.hidden = true;
-  }
-}
-
-document.getElementById("closeSummaryBtn").addEventListener("click", () => {
-  sessionSummary.hidden = true;
-});
-
-function resizeCanvaFrame() {
-  const header = document.querySelector('header');
-  const countdownSection = document.getElementById('countdownSection');
-  const canvaFrame = document.getElementById('canvaFrame');
-
-  const headerHeight = header.offsetHeight;
-  const countdownHeight = countdownSection.offsetHeight;
-  const chrome = 32;
-
-  const height = window.innerHeight - headerHeight - countdownHeight - chrome;
-  canvaFrame.style.height = height > 200 ? `${height}px` : "200px";
-}
-
-const testHour = document.getElementById("testHour");
-const testMinute = document.getElementById("testMinute");
-const setTestTimeBtn = document.getElementById("setTestTimeBtn");
-const clearTestTimeBtn = document.getElementById("clearTestTimeBtn");
-
-scheduleSelect.addEventListener("change", () => {
-  currentScheduleKey = scheduleSelect.value;
-  updateSchedule();
-  updateCountdown();
-});
-
-alarmDurationSelect.addEventListener("change", () => {
-  if (alarmDurationSelect.value === "custom") {
-    customAlarmInputs.style.display = "inline-flex";
-  } else {
-    customAlarmInputs.style.display = "none";
-  }
-});
-
-startAlarmBtn.addEventListener("click", () => {
-  let duration;
-  if (alarmDurationSelect.value === "custom") {
-    const min = parseInt(customAlarmMinutes.value, 10) || 0;
-    const sec = parseInt(customAlarmSeconds.value, 10) || 0;
-    duration = min * 60 + sec;
-    if (duration < 1) {
-      alert("Please enter a valid custom time of at least 1 second.");
-      return;
-    }
-  } else {
-    duration = parseInt(alarmDurationSelect.value, 10);
-  }
-  startAlarmCountdown(duration);
-});
-
-setTestTimeBtn.addEventListener("click", () => {
-  const hour = parseInt(testHour.value, 10);
-  const minute = parseInt(testMinute.value, 10);
-  if (isNaN(hour) || hour < 0 || hour > 23 || isNaN(minute) || minute < 0 || minute > 59) {
-    alert("Enter valid hour (0-23) and minute (0-59).");
     return;
   }
-  const now = new Date();
-  now.setHours(hour, minute, 0, 0);
-  testTime = now;
-  updateCountdown();
-});
-
-clearTestTimeBtn.addEventListener("click", () => {
-  testTime = null;
-  updateCountdown();
-});
-
-schoolLogo.addEventListener("dblclick", () => {
-  adminPanel.hidden = !adminPanel.hidden;
-});
-
-resetTimerBtn.addEventListener("click", () => {
-  updateSchedule();
-  updateCountdown();
-});
-
-closeAdminBtn.addEventListener("click", () => {
-  adminPanel.hidden = true;
-});
-
-window.addEventListener('resize', resizeCanvaFrame);
-
-window.addEventListener('DOMContentLoaded', () => {
-  updateSchedule();
-  updateCountdown();
-  setInterval(updateCountdown, 1000);
-  setInterval(updateCurrentTime, 1000);
-  resizeCanvaFrame();
-});
-
-function updateCurrentTime() {
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-  currentTimeDisplay.textContent = timeStr;
 }
+
+setInterval(updateClockAndSchedule, 500);
+updateClockAndSchedule();
+
+/* ===========
+   Class timer (student + teacher controls)
+   =========== */
+function updateClassTimerUI(){
+  classCount.textContent = formatMMSS(classTimerRemaining);
+  if (classTimerRemaining <= 0 && classTimerTotal > 0){
+    classCount.classList.add("flash");
+    if (alarmEnabled) playAlarm();
+    stopClassTimer();
+  } else {
+    classCount.classList.remove("flash");
+  }
+}
+function tickClassTimer(){
+  if (!classTimerRunning) return;
+  classTimerRemaining = Math.max(0, classTimerRemaining - 1);
+  updateClassTimerUI();
+}
+function startClassTimer(){
+  if (classTimerTotal <= 0) return;
+  initAudio();
+  if (!classTimerRunning){
+    classTimerRunning = true;
+    classIntv = setInterval(tickClassTimer, 1000);
+  }
+}
+function stopClassTimer(){
+  classTimerRunning = false;
+  if (classIntv){ clearInterval(classIntv); classIntv = null; }
+}
+function resetClassTimer(){
+  stopClassTimer();
+  classTimerRemaining = classTimerTotal;
+  updateClassTimerUI();
+}
+
+// play alarm using WebAudio
+function playAlarm(){
+  if (!audioCtx) return;
+  try {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(880, audioCtx.currentTime);
+    g.gain.setValueAtTime(0, audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(alarmGain, audioCtx.currentTime + 0.02);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    o.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 2);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2);
+    setTimeout(()=>{ try{ o.stop(); }catch(e){} }, 2100);
+  } catch (e){ console.warn("alarm play error", e); }
+}
+
+/* student presets */
+studentPresets.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const sec = parseInt(btn.dataset.sec, 10) || 0;
+    classTimerTotal = sec; classTimerRemaining = sec; updateClassTimerUI();
+  });
+});
+
+/* student custom set */
+setCustomBtn.addEventListener("click", () => {
+  const m = Math.max(0, parseInt(customMin.value, 10) || 0);
+  const s = Math.max(0, parseInt(customSec.value, 10) || 0);
+  classTimerTotal = m*60 + s; classTimerRemaining = classTimerTotal; updateClassTimerUI();
+});
+
+/* student controls */
+startBtn.addEventListener("click", () => { initAudio(); startClassTimer(); });
+pauseBtn.addEventListener("click", () => { stopClassTimer(); });
+resetBtn.addEventListener("click", () => { resetClassTimer(); });
+
+/* teacher quick presets */
+teacherPresets.forEach(b => {
+  b.addEventListener("click", ()=> {
+    const sec = parseInt(b.dataset.sec, 10) || 0;
+    classTimerTotal = sec; classTimerRemaining = sec; updateClassTimerUI(); startClassTimer();
+  });
+});
+
+/* teacher custom set & start */
+teachSet.addEventListener("click", ()=> {
+  const m = Math.max(0, parseInt(teachMin.value, 10) || 0);
+  const s = Math.max(0, parseInt(teachSec.value, 10) || 0);
+  classTimerTotal = m*60 + s; classTimerRemaining = classTimerTotal; updateClassTimerUI(); startClassTimer();
+});
+
+/* alarm toggle & volume */
+alarmToggle.addEventListener("change", ()=> { alarmEnabled = (alarmToggle.value === "on"); });
+alarmVolume.addEventListener("input", ()=> { alarmGain = parseFloat(alarmVolume.value); });
+
+/* ===========
+   Teacher panel & fullscreen
+   =========== */
+// open/close teacher panel
+teacherBtn.addEventListener("click", ()=> {
+  const open = teacherPanel.classList.toggle("open");
+  teacherBtn.setAttribute("aria-expanded", String(open));
+  teacherPanel.setAttribute("aria-hidden", String(!open));
+});
+if (closePanelBtn) {
+  closePanelBtn.addEventListener("click", ()=> {
+    teacherPanel.classList.remove("open");
+    teacherBtn.setAttribute("aria-expanded","false");
+    teacherPanel.setAttribute("aria-hidden","true");
+  });
+}
+// close when clicking outside
+document.addEventListener("click", (e) => {
+  if (!teacherPanel.classList.contains("open")) return;
+  if (teacherPanel.contains(e.target) || teacherBtn.contains(e.target)) return;
+  teacherPanel.classList.remove("open");
+  teacherBtn.setAttribute("aria-expanded","false");
+  teacherPanel.setAttribute("aria-hidden","true");
+});
+
+// fullscreen toggle
+if (fullscreenBtn) {
+  fullscreenBtn.addEventListener("click", async ()=> {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+        fullscreenBtn.textContent = "Exit Fullscreen";
+      } else {
+        await document.exitFullscreen();
+        fullscreenBtn.textContent = "Enter Fullscreen";
+      }
+    } catch (e) { console.warn("Fullscreen error", e); }
+  });
+}
+
+/* Unlock audio on first user gesture to satisfy autoplay policies */
+["click","touchstart"].forEach(evt => {
+  window.addEventListener(evt, function once(){
+    initAudio();
+    window.removeEventListener(evt, once);
+  }, { once:true });
+});
+
+/* initialize */
+updateClassTimerUI();
+updateClockAndSchedule();
