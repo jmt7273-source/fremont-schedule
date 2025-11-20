@@ -3,506 +3,838 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Class Timer & Tools</title>
+<title>Fremont Pathfinders Timer Tools</title>
 <style>
-  html, body {
-    margin: 0; height: 100%; font-family: Arial, sans-serif;
+  /* Reset and base styles */
+  body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: Arial, sans-serif;
+    background-color: #800020; /* Burgundy background */
+    color: white;
+    overflow: hidden;
   }
-  #container {
-    display: flex; flex-direction: column; height: 100vh; user-select: none;
+
+  #top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 20vh; /* 20% vertical height */
+    min-height: 120px;
+    padding: 0 1em;
+    user-select: none;
   }
-  #top-panel {
-    display: flex; align-items: center; justify-content: space-between;
-    background: #222; color: white; height: 20vh; min-height: 80px; padding: 0 10px;
+
+  /* Left teacher tools button */
+  #teacher-tools-btn {
+    background-color: #5a0013;
+    border: none;
+    color: white;
+    padding: 0.5em 1em;
+    font-size: 1rem;
+    border-radius: 4px;
+    cursor: pointer;
   }
-  #teacher-tools {
-    position: relative;
+  #teacher-tools-btn:hover {
+    background-color: #700021;
   }
-  #teacher-button {
-    background: #444; border: none; color: white; padding: 6px 10px; cursor: pointer;
-  }
-  #teacher-menu {
-    display: none;
-    position: absolute; top: 28px; left: 0; background: #333; border: 1px solid #555;
-    color: white; padding: 10px; width: 320px; max-height: 75vh; overflow-y: auto;
+
+  /* Teacher tools modal */
+  #teacher-tools-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 350px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #300010;
+    border-radius: 8px;
+    transform: translate(-50%, -50%);
+    padding: 1em 1.5em 1.5em;
+    box-shadow: 0 0 20px #b32e44;
     z-index: 1000;
+    display: none;
   }
-  #teacher-menu.show {
-    display: block;
+  #teacher-tools-modal h2 {
+    margin-top: 0;
+    text-align: center;
   }
-  #countdown-bar-container {
-    flex: 1; max-width: 600px; margin: 0 20px; display: flex; flex-direction: column; align-items: center;
+  #modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 999;
+    display: none;
   }
-  #countdown-bar {
-    width: 100%; background: green; color: white;
-    font-weight: bold; font-size: 1.5em; text-align: center;
-    padding: 8px 0; border-radius: 6px;
-    transition: background 0.3s ease;
+
+  /* Schedule selector buttons */
+  .schedule-select {
+    margin: 0.5em 0 1em;
+    width: 100%;
+    font-size: 1rem;
+    padding: 0.3em;
+  }
+
+  /* Schedule input grid */
+  .schedule-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 0.3em 0.5em;
+    margin-bottom: 1em;
+  }
+  .schedule-grid label {
+    grid-column: span 2;
+    font-size: 0.9rem;
+    align-self: center;
+  }
+  .schedule-grid input {
+    padding: 0.3em 0.4em;
+    font-size: 0.9rem;
+    border-radius: 3px;
+    border: none;
+    text-align: center;
+  }
+  .schedule-grid input[type="time"] {
+    /* Use time input with 12 hour format fallback for browsers that support it */
+  }
+
+  /* Visual timer container */
+  #visual-timer-container {
+    text-align: right;
+    min-width: 220px;
+  }
+
+  #visual-timer-display {
+    background-color: #004400;
+    color: white;
+    font-weight: bold;
+    font-size: 1.6rem;
+    padding: 0.3em 0.6em;
+    border-radius: 5px;
+    min-width: 100px;
+    display: inline-block;
+  }
+  #visual-timer-buttons {
+    margin-top: 0.4em;
+  }
+  .visual-timer-btn {
+    background-color: #007700;
+    border: none;
+    color: white;
+    padding: 0.3em 0.7em;
+    margin-left: 0.3em;
+    cursor: pointer;
+    font-size: 1rem;
+    border-radius: 4px;
+  }
+  .visual-timer-btn:hover {
+    background-color: #00aa00;
+  }
+
+  /* Custom timer input */
+  #custom-timer-inputs {
+    margin-top: 0.6em;
+    color: white;
+    font-size: 0.9rem;
+  }
+  #custom-timer-inputs input {
+    width: 40px;
+    text-align: center;
+    font-size: 1rem;
+    border-radius: 3px;
+    border: none;
+    margin-left: 0.3em;
+    background: #004400;
+    color: white;
+  }
+  #custom-timer-set {
+    background-color: #005500;
+    border: none;
+    color: white;
+    padding: 0.25em 0.5em;
+    margin-left: 0.5em;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  #custom-timer-set:hover {
+    background-color: #009900;
+  }
+
+  /* Center countdown timer bar */
+  #center-countdown-bar {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 1.6em;
+    min-width: 260px;
+    max-width: 80vw;
+    background-color: green;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-align: center;
+    line-height: 1.6em;
     user-select: none;
+    letter-spacing: 0.05em;
   }
-  #countdown-bar.flashing {
-    animation: flashRed 1s infinite;
+
+  /* Flashing red */
+  .flash-red {
+    animation: flashRedAnim 1s infinite;
   }
-  @keyframes flashRed {
-    0%, 100% { background-color: red; }
-    50% { background-color: darkred; }
+  @keyframes flashRedAnim {
+    0%, 100% { background-color: #B22222; } /* Firebrick Red */
+    50% { background-color: #660000; } /* Darker red */
   }
-  #next-class-timer {
-    font-size: 0.9em; margin-top: 4px; color: white;
+
+  /* Bottom content container */
+  #bottom-content {
+    position: absolute;
+    top: 20vh;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
   }
-  #visual-timer {
-    display: flex; flex-direction: column; align-items: center;
-    user-select: none;
-  }
-  #visual-display {
-    background: #444; border-radius: 6px; padding: 10px 20px;
-    font-size: 1.8em; font-weight: bold; color: white; user-select: text;
-    min-width: 90px; text-align: center;
-  }
-  #visual-controls button {
-    margin-top: 8px; margin-right: 6px;
-    background: #666; border: none; border-radius: 4px; color: white;
-    padding: 6px 12px; cursor: pointer;
-  }
-  #visual-controls button:hover {
-    background: #888;
-  }
-  #drag-bar {
-    height: 6px; background: #555; cursor: row-resize;
-  }
-  #bottom-panel {
-    flex: 1; background: #111; overflow: hidden;
-  }
-  /* Canva embed container with aspect ratio */
-  #canva-embed-container {
+
+  /* Canva container - fill bottom container height */
+  #canva-container {
     position: relative;
     width: 100%;
-    height: 0;
-    padding-top: 56.25%;
-    padding-bottom: 0;
+    height: 100%;
     box-shadow: 0 2px 8px 0 rgba(63,69,81,0.16);
-    margin-top: 1.6em;
-    margin-bottom: 0.9em;
-    overflow: hidden;
     border-radius: 8px;
-    will-change: transform;
   }
-  #canva-embed-container iframe {
+  #canva-container iframe {
     position: absolute;
     width: 100%;
     height: 100%;
-    top: 0; left: 0;
+    top: 0;
+    left: 0;
     border: none;
-    padding: 0;
-    margin: 0;
+  }
+  /* Canva attribution link style */
+  #canva-attribution {
+    display: block;
+    margin: 0.5em 0 0.9em 0;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #ddd;
+    text-decoration: none;
+  }
+  #canva-attribution:hover {
+    text-decoration: underline;
+  }
+
+  /* Responsive / dynamic user resizing */
+  #resizer {
+    position: absolute;
+    top: 20vh;
+    left: 0;
+    right: 0;
+    height: 5px;
+    cursor: ns-resize;
+    background-color: transparent;
+    user-select: none;
+    z-index: 10;
   }
 </style>
 </head>
 <body>
-  <div id="container">
-    <div id="top-panel">
-      <div id="teacher-tools">
-        <button id="teacher-button" aria-haspopup="true" aria-expanded="false">Teacher Tools ▾</button>
-        <div id="teacher-menu" role="menu" aria-label="Teacher Tools Menu">
-          <label for="schedule-select">Select Schedule:</label>
-          <select id="schedule-select" aria-describedby="schedule-desc">
-            <option value="auto">Auto (Day-based)</option>
-            <option value="regular">Regular Day</option>
-            <option value="tuesday">Tuesday PD Schedule</option>
-            <option value="minimum">Minimum Day</option>
-            <option value="shortened">Shortened Day</option>
-          </select>
 
-          <div id="schedules-edit">
-            <!-- Dynamic schedule edit form injected here -->
-          </div>
+<div id="top-bar" aria-label="Top control bar">
+  <button id="teacher-tools-btn" aria-haspopup="dialog" aria-controls="teacher-tools-modal" aria-expanded="false">
+    Teacher Tools ⚙️
+  </button>
 
-          <button id="save-schedules">Save Schedule Times</button>
-
-          <hr style="margin: 14px 0; border-color: #555;" />
-
-          <label>Visual Timer Custom Length:</label>
-          <input type="number" id="custom-minutes" min="0" max="59" placeholder="mm" aria-label="Custom Timer Minutes" /> :
-          <input type="number" id="custom-seconds" min="0" max="59" placeholder="ss" aria-label="Custom Timer Seconds"/>
-          <button id="set-custom-timer">Set Custom Timer</button>
-        </div>
-      </div>
-
-      <div id="countdown-bar-container" aria-live="polite" aria-atomic="true">
-        <div id="countdown-bar">Loading schedule...</div>
-        <div id="next-class-timer"></div>
-      </div>
-
-      <div id="visual-timer" role="timer" aria-live="assertive" aria-atomic="true" aria-label="Visual Timer">
-        <div id="visual-display">00:00</div>
-        <div id="visual-controls">
-          <button data-minutes="1">1 min</button>
-          <button data-minutes="5">5 min</button>
-          <button data-minutes="10">10 min</button>
-          <button id="custom-timer-btn">Custom</button>
-        </div>
-      </div>
-    </div>
-    <div id="drag-bar" tabindex="0" aria-label="Resize top panel"></div>
-    <div id="bottom-panel">
-      <div id="canva-embed-container">
-        <iframe loading="lazy" src="https://www.canva.com/design/DAG4mPMfK-c/embed" allowfullscreen allow="fullscreen" title="Canva Presentation Embed"></iframe>
-      </div>
-    </div>
+  <div id="center-countdown-bar" aria-live="polite" aria-atomic="true" aria-label="Countdown Timer">
+    Loading timer...
   </div>
 
-  <audio id="timer-alarm" src="ringtone.mp3" preload="auto"></audio>
+  <div id="visual-timer-container" aria-label="Visual Timer with quick select buttons">
+    <div id="visual-timer-display" role="timer" aria-live="polite" aria-atomic="true">00:00</div>
+    <div id="visual-timer-buttons">
+      <button class="visual-timer-btn" data-minutes="1">1 Minute</button>
+      <button class="visual-timer-btn" data-minutes="5">5 Minutes</button>
+      <button class="visual-timer-btn" data-minutes="10">10 Minutes</button>
+    </div>
+    <div id="custom-timer-inputs">
+      Custom: 
+      <label for="custom-minutes">Min 
+        <input type="number" id="custom-minutes" min="0" max="59" value="0" aria-label="Custom minutes" />
+      </label>
+      <label for="custom-seconds">Sec 
+        <input type="number" id="custom-seconds" min="0" max="59" value="0" aria-label="Custom seconds" />
+      </label>
+      <button id="custom-timer-set">Set</button>
+    </div>
+  </div>
+</div>
+
+<div id="resizer" aria-hidden="true"></div>
+
+<div id="bottom-content" role="main">
+  <div id="canva-container" aria-label="Canva presentation embed">
+    <iframe loading="lazy" src="https://www.canva.com/design/DAG4mPMfK-c/boRs9fOoR8SB-jmYFFAsFQ/view?embed" allowfullscreen="allowfullscreen" allow="fullscreen" title="Timer Agendas Canva presentation"></iframe>
+  </div>
+  <a id="canva-attribution" href="https://www.canva.com/design/DAG4mPMfK-c/boRs9fOoR8SB-jmYFFAsFQ/view?utm_content=DAG4mPMfK-c&utm_campaign=designshare&utm_medium=embeds&utm_source=link" target="_blank" rel="noopener noreferrer">
+    Timer Agendas by JOSE TORRES
+  </a>
+</div>
+
+<!-- Teacher Tools Modal -->
+<div id="modal-overlay"></div>
+<div id="teacher-tools-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <h2 id="modal-title">Teacher Tools - Schedule Settings</h2>
+
+  <label for="schedule-select">Select Schedule:</label>
+  <select id="schedule-select" class="schedule-select" aria-label="Schedule selection">
+    <option value="regular">Regular Day (default)</option>
+    <option value="tuesday">Tuesday PD Schedule</option>
+    <option value="minimum">Minimum Day</option>
+    <option value="shortened">Shortened Day</option>
+  </select>
+
+  <div id="schedule-inputs-container">
+    <!-- Schedule inputs will be dynamically inserted here -->
+  </div>
+
+  <button id="save-schedules-btn" aria-label="Save schedules">Save Schedules</button>
+  <button id="close-modal-btn" aria-label="Close teacher tools">Close</button>
+
+  <hr />
+  <div>
+    <strong>Note:</strong> Times must be entered in 12-hour format using HH:MM AM/PM.
+  </div>
+
+  <div id="custom-timer-settings" style="margin-top: 1em;">
+    <h3>Custom Visual Timer Length</h3>
+    <label for="custom-timer-minutes">Minutes:</label>
+    <input type="number" id="custom-timer-minutes" min="0" max="59" value="0" aria-label="Custom timer minutes" />
+    <label for="custom-timer-seconds">Seconds:</label>
+    <input type="number" id="custom-timer-seconds" min="0" max="59" value="0" aria-label="Custom timer seconds" />
+    <button id="save-custom-timer-btn">Save Custom Timer</button>
+  </div>
+</div>
 
 <script>
-  // Utility for parsing and formatting times
-  function parse12hTimeToDate(tstr) {
-    if (!tstr) return null;
-    const match = tstr.match(/^(\d{1,2}):(\d{2})\s*([AP]M)$/i);
-    if (!match) return null;
-    let hr = +match[1];
-    const mn = +match[2];
-    const mer = match[3].toUpperCase();
-    if (mer === 'PM' && hr !== 12) hr += 12;
-    if (mer === 'AM' && hr === 12) hr = 0;
-    const d = new Date();
-    d.setHours(hr, mn, 0, 0);
-    return d;
-  }
-  function formatTimeMMSS(seconds) {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-  }
+  (() => {
+    // Schedule default data structure with example times (12-hour with AM/PM)
+    const defaultSchedules = {
+      regular: [
+        { name: "Period 1", start: "8:00 AM", end: "8:50 AM" },
+        { name: "Period 2", start: "8:55 AM", end: "9:45 AM" },
+        { name: "Period 3", start: "9:50 AM", end: "10:40 AM" },
+        { name: "Lunch", start: "10:40 AM", end: "11:10 AM" },
+        { name: "Period 4", start: "11:10 AM", end: "12:00 PM" },
+        { name: "Period 5", start: "12:05 PM", end: "12:55 PM" },
+        { name: "Period 6", start: "1:00 PM", end: "1:50 PM" }
+      ],
+      tuesday: [
+        { name: "Period 1", start: "8:00 AM", end: "8:30 AM" },
+        { name: "Period 2", start: "8:35 AM", end: "9:05 AM" },
+        { name: "Period 3", start: "9:10 AM", end: "9:40 AM" },
+        { name: "Lunch", start: "9:40 AM", end: "10:00 AM" },
+        { name: "Period 4", start: "10:00 AM", end: "10:30 AM" },
+        { name: "Period 5", start: "10:35 AM", end: "11:05 AM" },
+        { name: "Period 6", start: "11:10 AM", end: "11:40 AM" }
+      ],
+      minimum: [
+        { name: "Period 1", start: "8:00 AM", end: "8:25 AM" },
+        { name: "Period 2", start: "8:30 AM", end: "8:55 AM" },
+        { name: "Period 3", start: "9:00 AM", end: "9:25 AM" },
+        { name: "Lunch", start: "9:25 AM", end: "9:40 AM" },
+        { name: "Period 4", start: "9:40 AM", end: "10:05 AM" },
+        { name: "Period 5", start: "10:10 AM", end: "10:35 AM" },
+        { name: "Period 6", start: "10:40 AM", end: "11:05 AM" }
+      ],
+      shortened: [
+        { name: "Period 1", start: "8:00 AM", end: "8:40 AM" },
+        { name: "Period 2", start: "8:45 AM", end: "9:25 AM" },
+        { name: "Period 3", start: "9:30 AM", end: "10:10 AM" },
+        { name: "Lunch", start: "10:10 AM", end: "10:30 AM" },
+        { name: "Period 4", start: "10:30 AM", end: "11:10 AM" },
+        { name: "Period 5", start: "11:15 AM", end: "11:55 AM" },
+        { name: "Period 6", start: "12:00 PM", end: "12:40 PM" }
+      ]
+    };
 
-  let schedules = {
-    regular: {
-      'Period 1': {start: '8:00 AM', end: '8:50 AM'},
-      'Period 2': {start: '8:55 AM', end: '9:45 AM'},
-      'Period 3': {start: '9:50 AM', end: '10:40 AM'},
-      'Lunch':    {start: '10:40 AM', end: '11:10 AM'},
-      'Period 4': {start: '11:15 AM', end: '12:05 PM'},
-      'Period 5': {start: '12:10 PM', end: '1:00 PM'},
-      'Period 6': {start: '1:05 PM', end: '1:55 PM'}
-    },
-    tuesday: {
-      'Period 1': {start: '8:30 AM', end: '9:10 AM'},
-      'Period 2': {start: '9:15 AM', end: '9:55 AM'},
-      'Period 3': {start: '10:00 AM', end: '10:40 AM'},
-      'Lunch':    {start: '10:40 AM', end: '11:10 AM'},
-      'Period 4': {start: '11:15 AM', end: '11:55 AM'},
-      'Period 5': {start: '12:00 PM', end: '12:40 PM'},
-      'Period 6': {start: '12:45 PM', end: '1:25 PM'}
-    },
-    minimum: {
-      'Period 1': {start: '8:00 AM', end: '8:30 AM'},
-      'Period 2': {start: '8:35 AM', end: '9:05 AM'},
-      'Period 3': {start: '9:10 AM', end: '9:40 AM'},
-      'Lunch':    {start: '9:40 AM', end: '10:00 AM'},
-      'Period 4': {start: '10:05 AM', end: '10:35 AM'},
-      'Period 5': {start: '10:40 AM', end: '11:10 AM'},
-      'Period 6': {start: '11:15 AM', end: '11:45 AM'}
-    },
-    shortened: {
-      'Period 1': {start: '8:45 AM', end: '9:15 AM'},
-      'Period 2': {start: '9:20 AM', end: '9:50 AM'},
-      'Period 3': {start: '9:55 AM', end: '10:25 AM'},
-      'Lunch':    {start: '10:25 AM', end: '10:40 AM'},
-      'Period 4': {start: '10:45 AM', end: '11:15 AM'},
-      'Period 5': {start: '11:20 AM', end: '11:50 AM'},
-      'Period 6': {start: '11:55 AM', end: '12:25 PM'}
+    // State
+    let activeScheduleKey = null;
+    let loadedSchedules = {};
+    let customTimerLength = { minutes: 0, seconds: 0 };
+
+    // Utilities
+    function parseTime(tStr) {
+      // Parse 12-hour time string "h:mm AM/PM" => Date with today's date + time
+      const d = new Date();
+      const [time, modifier] = tStr.split(' ');
+      let [h, m] = time.split(':').map(Number);
+      if (modifier === "PM" && h !== 12) h += 12;
+      if (modifier === "AM" && h === 12) h = 0;
+      d.setHours(h, m, 0, 0);
+      return d;
     }
-  };
 
-  const savedSchedules = localStorage.getItem('customSchedules');
-  if (savedSchedules) {
-    try {
-      const saved = JSON.parse(savedSchedules);
-      for (const sch in saved) {
-        if (schedules[sch]) {
-          schedules[sch] = saved[sch];
+    function formatTime(date) {
+      // Format Date object to MM:SS zero padded string
+      let m = date.getMinutes();
+      let s = date.getSeconds();
+      return (m < 10 ? '0' : '') + m + ":" + (s < 10 ? '0' : '') + s;
+    }
+
+    function formatDuration(ms) {
+      // Format milliseconds to M:SS string
+      const totalSec = Math.floor(ms / 1000);
+      const min = Math.floor(totalSec / 60);
+      const sec = totalSec % 60;
+      return `${min}:${sec < 10 ? "0" + sec : sec}`;
+    }
+
+    function getNow() {
+      return new Date();
+    }
+
+    // Save/load schedules to/from localStorage
+    function saveSchedulesToStorage(schedules) {
+      localStorage.setItem('schedules', JSON.stringify(schedules));
+    }
+    function loadSchedulesFromStorage() {
+      const raw = localStorage.getItem('schedules');
+      if(raw){
+        try {
+          return JSON.parse(raw);
+        } catch {
+          return {};
         }
       }
-    } catch {}
-  }
+      return {};
+    }
 
-  let selectedScheduleKey = localStorage.getItem('selectedSchedule') || 'auto';
-  let customTimerSeconds = parseInt(localStorage.getItem('customTimerSeconds')) || 60;
+    // Save/load active schedule key
+    function saveActiveScheduleKey(key) {
+      localStorage.setItem('activeScheduleKey', key);
+    }
+    function loadActiveScheduleKey() {
+      return localStorage.getItem('activeScheduleKey');
+    }
 
-  const teacherButton = document.getElementById('teacher-button');
-  const teacherMenu = document.getElementById('teacher-menu');
-  const scheduleSelect = document.getElementById('schedule-select');
-  const schedulesEditContainer = document.getElementById('schedules-edit');
-  const saveSchedulesButton = document.getElementById('save-schedules');
+    // Save/load custom timer length
+    function saveCustomTimerLength(length) {
+      localStorage.setItem('customTimerLength', JSON.stringify(length));
+    }
+    function loadCustomTimerLength() {
+      const val = localStorage.getItem('customTimerLength');
+      if(val){
+        try {
+          return JSON.parse(val);
+        } catch {
+          return {minutes: 0, seconds: 0};
+        }
+      }
+      return {minutes: 0, seconds: 0};
+    }
 
-  const countdownBar = document.getElementById('countdown-bar');
-  const nextClassTimer = document.getElementById('next-class-timer');
+    // Create input elements for a single schedule
+    function createScheduleInputs(scheduleKey, scheduleArr) {
+      const container = document.createElement('div');
+      container.classList.add('schedule-section');
+      container.dataset.scheduleKey = scheduleKey;
 
-  const visualDisplay = document.getElementById('visual-display');
-  const visualControlButtons = document.querySelectorAll('#visual-controls button');
-  const customMinutesInput = document.getElementById('custom-minutes');
-  const customSecondsInput = document.getElementById('custom-seconds');
-  const setCustomTimerButton = document.getElementById('set-custom-timer');
+      const title = document.createElement('h3');
+      title.textContent = scheduleKey.charAt(0).toUpperCase() + scheduleKey.slice(1) + " Schedule";
+      container.appendChild(title);
 
-  // Audio element for alarm
-  const timerAlarm = document.getElementById('timer-alarm');
+      const grid = document.createElement('div');
+      grid.classList.add('schedule-grid');
 
-  const container = document.getElementById('container');
-  const topPanel = document.getElementById('top-panel');
-  const dragBar = document.getElementById('drag-bar');
-  const bottomPanel = document.getElementById('bottom-panel');
-  let isDragging = false;
+      scheduleArr.forEach((period, idx) => {
+        // Period name label
+        const label = document.createElement('label');
+        label.setAttribute('for', `${scheduleKey}-period-${idx}-start`);
+        label.textContent = period.name;
+        grid.appendChild(label);
 
-  function buildScheduleEditForm() {
-    schedulesEditContainer.innerHTML = '';
-    for (const [key, periods] of Object.entries(schedules)) {
-      const schTitle = document.createElement('h4');
-      schTitle.textContent = key.charAt(0).toUpperCase() + key.slice(1) + " Schedule";
-      schedulesEditContainer.appendChild(schTitle);
-
-      const table = document.createElement('table');
-      const thead = document.createElement('thead');
-      thead.innerHTML = '<tr><th>Period</th><th>Start (12h)</th><th>End (12h)</th></tr>';
-      table.appendChild(thead);
-
-      const tbody = document.createElement('tbody');
-
-      for (const [periodName, times] of Object.entries(periods)) {
-        const tr = document.createElement('tr');
-
-        const tdName = document.createElement('td');
-        tdName.textContent = periodName;
-        tr.appendChild(tdName);
-
-        const tdStart = document.createElement('td');
+        // Start time input
         const startInput = document.createElement('input');
         startInput.type = 'text';
-        startInput.value = times.start;
-        startInput.dataset.schedule = key;
-        startInput.dataset.period = periodName;
-        startInput.classList.add('time-input');
-        tdStart.appendChild(startInput);
-        tr.appendChild(tdStart);
+        startInput.id = `${scheduleKey}-period-${idx}-start`;
+        startInput.dataset.scheduleKey = scheduleKey;
+        startInput.dataset.periodIdx = idx;
+        startInput.dataset.timeType = 'start';
+        startInput.value = period.start;
+        startInput.setAttribute('aria-label', `${period.name} start time`);
+        startInput.placeholder = "eg. 8:00 AM";
+        grid.appendChild(startInput);
 
-        const tdEnd = document.createElement('td');
+        // End time input
         const endInput = document.createElement('input');
         endInput.type = 'text';
-        endInput.value = times.end;
-        endInput.dataset.schedule = key;
-        endInput.dataset.period = periodName;
-        endInput.classList.add('time-input');
-        tdEnd.appendChild(endInput);
-        tr.appendChild(tdEnd);
+        endInput.id = `${scheduleKey}-period-${idx}-end`;
+        endInput.dataset.scheduleKey = scheduleKey;
+        endInput.dataset.periodIdx = idx;
+        endInput.dataset.timeType = 'end';
+        endInput.value = period.end;
+        endInput.setAttribute('aria-label', `${period.name} end time`);
+        endInput.placeholder = "eg. 8:50 AM";
+        grid.appendChild(endInput);
+      });
 
-        tbody.appendChild(tr);
-      }
-      table.appendChild(tbody);
-      schedulesEditContainer.appendChild(table);
+      container.appendChild(grid);
+      return container;
     }
-  }
 
-  function saveSchedulesFromForm() {
-    const inputs = schedulesEditContainer.querySelectorAll('input.time-input');
-    inputs.forEach(input => {
-      const sch = input.dataset.schedule;
-      const period = input.dataset.period;
-      if (schedules[sch] && schedules[sch][period]) {
-        if (input === null) return;
-        if (input.value) {
-          if (input.parentElement.cellIndex === 1) {
-            schedules[sch][period].start = input.value.trim();
-          } else if (input.parentElement.cellIndex === 2) {
-            schedules[sch][period].end = input.value.trim();
+    // Build schedule inputs UI for all schedules
+    function renderScheduleInputs() {
+      const container = document.getElementById('schedule-inputs-container');
+      container.innerHTML = ''; // clear previous
+      for (const [key, schedule] of Object.entries(loadedSchedules)) {
+        container.appendChild(createScheduleInputs(key, schedule));
+      }
+    }
+
+    // Save inputs back to loadedSchedules state
+    function saveScheduleInputs() {
+      // For each loaded schedule key and periods, update times from inputs
+      for (const key in loadedSchedules) {
+        const schedule = loadedSchedules[key];
+        schedule.forEach((period, idx) => {
+          const startInput = document.querySelector(`input[data-schedule-key='${key}'][data-period-idx='${idx}'][data-time-type='start']`);
+          const endInput = document.querySelector(`input[data-schedule-key='${key}'][data-period-idx='${idx}'][data-time-type='end']`);
+          if(startInput && endInput){
+            period.start = startInput.value.trim();
+            period.end = endInput.value.trim();
           }
-        }
-      }
-    });
-    localStorage.setItem('customSchedules', JSON.stringify(schedules));
-  }
-
-  scheduleSelect.value = selectedScheduleKey;
-  scheduleSelect.addEventListener('change', () => {
-    selectedScheduleKey = scheduleSelect.value;
-    localStorage.setItem('selectedSchedule', selectedScheduleKey);
-  });
-
-  teacherButton.addEventListener('click', () => {
-    const isShown = teacherMenu.classList.toggle('show');
-    teacherButton.setAttribute('aria-expanded', isShown);
-  });
-
-  saveSchedulesButton.addEventListener('click', () => {
-    saveSchedulesFromForm();
-    alert('Schedules saved.');
-  });
-
-  setCustomTimerButton.addEventListener('click', () => {
-    let m = parseInt(customMinutesInput.value);
-    let s = parseInt(customSecondsInput.value);
-    if (isNaN(m) || m < 0) m = 0;
-    if (isNaN(s) || s < 0 || s > 59) s = 0;
-    customTimerSeconds = m * 60 + s;
-    localStorage.setItem('customTimerSeconds', customTimerSeconds);
-    alert(`Custom timer set to ${formatTimeMMSS(customTimerSeconds)}.`);
-  });
-
-  buildScheduleEditForm();
-
-  function getActiveSchedule() {
-    if (selectedScheduleKey === 'auto') {
-      const todayDow = new Date().getDay();
-      if (todayDow === 2) return 'tuesday';
-      return 'regular';
-    }
-    return selectedScheduleKey;
-  }
-
-  function getCurrentPeriodAndNext(schedule, now) {
-    let currentPeriod = null;
-    let nextPeriod = null;
-
-    const periods = Object.entries(schedule);
-    for (let i = 0; i < periods.length; i++) {
-      const [periodName, times] = periods[i];
-      const startD = parse12hTimeToDate(times.start);
-      const endD = parse12hTimeToDate(times.end);
-      if (!startD || !endD) continue;
-      if (now >= startD && now <= endD) {
-        currentPeriod = {name: periodName, start: startD, end: endD};
-        if (i + 1 < periods.length) {
-          const nextT = periods[i+1][1];
-          nextPeriod = {name: periods[i+1][0], start: parse12hTimeToDate(nextT.start), end: parse12hTimeToDate(nextT.end)};
-        }
-        break;
-      }
-      if (now < startD) {
-        nextPeriod = {name: periodName, start: startD, end: endD};
-        break;
+        });
       }
     }
-    return {currentPeriod, nextPeriod};
-  }
 
-  let flashIntervalId = null;
-  function updateCountdownBar() {
-    const now = new Date();
-    const activeScheduleKey = getActiveSchedule();
-    const schedule = schedules[activeScheduleKey];
-    if (!schedule) {
-      countdownBar.textContent = 'No schedule selected';
-      nextClassTimer.textContent = '';
-      countdownBar.style.background = 'green';
-      countdownBar.classList.remove('flashing');
-      return;
-    }
-
-    const {currentPeriod, nextPeriod} = getCurrentPeriodAndNext(schedule, now);
-    if (!currentPeriod) {
-      countdownBar.textContent = 'No current period';
-      nextClassTimer.textContent = '';
-      countdownBar.style.background = 'green';
-      countdownBar.classList.remove('flashing');
-      return;
-    }
-
-    const msLeft = currentPeriod.end - now;
-    const secLeft = Math.floor(msLeft / 1000);
-    const periodLengthMs = currentPeriod.end - currentPeriod.start;
-    const elapsedMs = now - currentPeriod.start;
-
-    const fifteenMinutesMs = 15 * 60 * 1000;
-    const flashing = elapsedMs <= fifteenMinutesMs || msLeft <= fifteenMinutesMs;
-
-    let barText;
-    if (elapsedMs <= fifteenMinutesMs) {
-      const untilPassesMs = fifteenMinutesMs - elapsedMs;
-      const untilPassesSec = Math.floor(untilPassesMs / 1000);
-      barText = `No Restroom or Passes Right Now – ${formatTimeMMSS(untilPassesSec)}`;
-    } else if (msLeft <= fifteenMinutesMs) {
-      barText = `No Restroom or Passes Right Now – ${formatTimeMMSS(secLeft)}`;
-    } else {
-      barText = `${currentPeriod.name}: ${formatTimeMMSS(secLeft)}`;
-    }
-
-    countdownBar.textContent = barText;
-
-    if (flashing) {
-      countdownBar.classList.add('flashing');
-    } else {
-      countdownBar.classList.remove('flashing');
-      countdownBar.style.backgroundColor = 'green';
-    }
-
-    if (nextPeriod) {
-      const msUntilNextStart = nextPeriod.start - now;
-      const secUntilNextStart = Math.max(0, Math.floor(msUntilNextStart / 1000));
-      nextClassTimer.textContent = `Minutes left until Next Class: ${formatTimeMMSS(secUntilNextStart)}`;
-    } else {
-      nextClassTimer.textContent = 'No next class period';
-    }
-  }
-
-  setInterval(updateCountdownBar, 1000);
-  updateCountdownBar();
-
-  let visualTimerSeconds = 0;
-  let visualTimerInterval = null;
-
-  function setVisualTimer(seconds) {
-    if (visualTimerInterval) clearInterval(visualTimerInterval);
-    visualTimerSeconds = seconds;
-    updateVisualTimerDisplay();
-    if (seconds > 0) {
-      visualTimerInterval = setInterval(() => {
-        visualTimerSeconds--;
-        updateVisualTimerDisplay();
-        if (visualTimerSeconds <= 0) {
-          clearInterval(visualTimerInterval);
-          visualTimerInterval = null;
-          timerAlarm.play().catch(() => {
-            console.warn('Audio play was prevented (user interaction might be required).');
-          });
+    // Check if now is within a period, return the period object or null
+    function getCurrentPeriod(schedule) {
+      const now = getNow();
+      for (const period of schedule) {
+        const start = parseTime(period.start);
+        const end = parseTime(period.end);
+        if (now >= start && now <= end) {
+          return {period, start, end};
         }
-      }, 1000);
+      }
+      return null;
     }
-  }
 
-  function updateVisualTimerDisplay() {
-    visualDisplay.textContent = formatTimeMMSS(visualTimerSeconds);
-  }
+    // Get next period start time after now
+    function getNextPeriodStart(schedule) {
+      const now = getNow();
+      for (const period of schedule) {
+        const start = parseTime(period.start);
+        if (start > now) {
+          return start;
+        }
+      }
+      return null;
+    }
 
-  visualControlButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (btn.id === 'custom-timer-btn') {
-        setVisualTimer(customTimerSeconds);
+    // Format minutes and seconds from milliseconds
+    function formatMinSec(ms) {
+      const totalSec = Math.floor(ms / 1000);
+      const min = Math.floor(totalSec / 60);
+      const sec = totalSec % 60;
+      return `${min}:${sec < 10 ? "0" + sec : sec}`;
+    }
+
+    // Flashing control variables
+    let flashRedState = false;
+    let flashRedInterval = null;
+
+    // Center countdown bar update
+    function updateCenterCountdownBar() {
+      const bar = document.getElementById('center-countdown-bar');
+      const now = getNow();
+
+      // Determine active schedule for the day
+      let scheduleKey = activeScheduleKey;
+      if (!scheduleKey) {
+        // Default to Tuesday PD on Tuesdays, else Regular Day
+        const today = now.getDay(); // Sunday=0 Tuesday=2
+        if (today === 2) scheduleKey = 'tuesday';
+        else scheduleKey = 'regular';
+      }
+      const schedule = loadedSchedules[scheduleKey];
+
+      // If no schedule, just clear timer
+      if (!schedule) {
+        bar.textContent = "No schedule configured";
+        bar.style.backgroundColor = "green";
+        bar.classList.remove('flash-red');
+        return;
+      }
+
+      // Check if now is in first 15 mins or last 15 mins of any period
+      let inNoPassPeriod = false;
+      let noPassTimeLeftMs = 0;
+      for (const {start, end} of schedule.map(p => ({start: parseTime(p.start), end: parseTime(p.end)}))) {
+        // within start+15 min
+        if (now >= start && now <= new Date(start.getTime() + 15 * 60000)) {
+          inNoPassPeriod = true;
+          noPassTimeLeftMs = new Date(start.getTime() + 15 * 60000) - now;
+          break;
+        }
+        // within end-15 min to end
+        if (now >= new Date(end.getTime() - 15 * 60000) && now <= end) {
+          inNoPassPeriod = true;
+          noPassTimeLeftMs = end - now;
+          break;
+        }
+      }
+
+      if (inNoPassPeriod) {
+        bar.textContent = `No Restroom or Passes Right Now — ${formatMinSec(noPassTimeLeftMs)}`;
+        bar.classList.add('flash-red');
+        bar.style.backgroundColor = ""; // controlled by CSS animation
+        return;
       } else {
-        const min = parseInt(btn.dataset.minutes) || 0;
-        setVisualTimer(min * 60);
+        bar.classList.remove('flash-red');
+      }
+
+      // Show minutes and seconds left in current period or until next period
+      const currentPeriodData = getCurrentPeriod(schedule);
+      if (currentPeriodData) {
+        const {period, end} = currentPeriodData;
+        const timeLeftMs = end - now;
+        bar.style.backgroundColor = "green";
+        bar.textContent = `${period.name}: ${formatMinSec(timeLeftMs)} left`;
+      } else {
+        // Not in any period, show time until next period
+        const nextStart = getNextPeriodStart(schedule);
+        if (nextStart) {
+          const timeUntilNextMs = nextStart - now;
+          bar.style.backgroundColor = "green";
+          bar.textContent = `Minutes left until Next Class: ${formatMinSec(timeUntilNextMs)}`;
+        } else {
+          bar.style.backgroundColor = "green";
+          bar.textContent = "No more classes today";
+        }
+      }
+    }
+
+    // Visual Timer logic
+    let visualTimerInterval = null;
+    let visualTimerEndTime = null;
+    const visualTimerDisplay = document.getElementById('visual-timer-display');
+
+    function setVisualTimer(minutes, seconds = 0) {
+      if (visualTimerInterval) {
+        clearInterval(visualTimerInterval);
+      }
+      if (minutes === 0 && seconds === 0) {
+        visualTimerDisplay.textContent = "00:00";
+        visualTimerEndTime = null;
+        return;
+      }
+      const now = new Date();
+      visualTimerEndTime = new Date(now.getTime() + minutes * 60000 + seconds * 1000);
+      updateVisualTimer(); // immediate update
+      visualTimerInterval = setInterval(updateVisualTimer, 250);
+    }
+
+    function updateVisualTimer() {
+      if (!visualTimerEndTime) return;
+      const now = new Date();
+      if (now >= visualTimerEndTime) {
+        clearInterval(visualTimerInterval);
+        visualTimerInterval = null;
+        visualTimerDisplay.textContent = "00:00";
+        return;
+      }
+      const diffMs = visualTimerEndTime - now;
+      visualTimerDisplay.textContent = formatMinSec(diffMs);
+    }
+
+    // Event listeners for visual timer quick buttons
+    document.querySelectorAll('.visual-timer-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const minutes = parseInt(btn.dataset.minutes, 10);
+        setVisualTimer(minutes, 0);
+      });
+    });
+
+    // Set custom timer button
+    document.getElementById('custom-timer-set').addEventListener('click', () => {
+      const minInput = document.getElementById('custom-minutes').value;
+      const secInput = document.getElementById('custom-seconds').value;
+      const min = Math.max(0, Math.min(59, parseInt(minInput) || 0));
+      const sec = Math.max(0, Math.min(59, parseInt(secInput) || 0));
+      setVisualTimer(min, sec);
+    });
+
+    // Teacher Tools modal toggle
+    const teacherToolsBtn = document.getElementById('teacher-tools-btn');
+    const modal = document.getElementById('teacher-tools-modal');
+    const overlay = document.getElementById('modal-overlay');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const saveSchedulesBtn = document.getElementById('save-schedules-btn');
+    const scheduleSelect = document.getElementById('schedule-select');
+    const scheduleInputsContainer = document.getElementById('schedule-inputs-container');
+
+    function openModal() {
+      modal.style.display = 'block';
+      overlay.style.display = 'block';
+      teacherToolsBtn.setAttribute('aria-expanded', 'true');
+    }
+    function closeModal() {
+      modal.style.display = 'none';
+      overlay.style.display = 'none';
+      teacherToolsBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    teacherToolsBtn.addEventListener('click', () => {
+      openModal();
+    });
+    overlay.addEventListener('click', () => {
+      closeModal();
+    });
+    closeModalBtn.addEventListener('click', () => {
+      closeModal();
+    });
+
+    // Save button saves schedules and active schedule key
+    saveSchedulesBtn.addEventListener('click', () => {
+      saveScheduleInputs();
+      saveSchedulesToStorage(loadedSchedules);
+      // Save active schedule key from dropdown
+      activeScheduleKey = scheduleSelect.value || null;
+      saveActiveScheduleKey(activeScheduleKey);
+      alert("Schedules saved!");
+      closeModal();
+    });
+
+    // Schedule select dropdown changes override schedule display
+    scheduleSelect.addEventListener('change', () => {
+      activeScheduleKey = scheduleSelect.value;
+      saveActiveScheduleKey(activeScheduleKey);
+    });
+
+    // Load stored schedules from localStorage or use defaults
+    function loadOrDefaultSchedules() {
+      const stored = loadSchedulesFromStorage();
+      loadedSchedules = { ...defaultSchedules, ...stored };
+      // Fix incomplete schedules if some keys missing
+      for (const key in defaultSchedules) {
+        if (!loadedSchedules[key]) {
+          loadedSchedules[key] = defaultSchedules[key];
+        }
+      }
+    }
+
+    // Load/save active schedule key or default null
+    function loadOrDefaultActiveSchedule() {
+      let key = loadActiveScheduleKey();
+      if (!key) {
+        // Default for Tuesday PD on Tuesday, else regular day
+        let today = (new Date()).getDay();
+        key = today === 2 ? 'tuesday' : 'regular';
+      }
+      activeScheduleKey = key;
+    }
+
+    // Render inputs for schedules on modal open
+    function prepareModal() {
+      renderScheduleInputs();
+      scheduleSelect.value = activeScheduleKey || 'regular';
+
+      // Load custom timer values into modal inputs
+      const savedCustomTimer = loadCustomTimerLength();
+      document.getElementById('custom-timer-minutes').value = savedCustomTimer.minutes || 0;
+      document.getElementById('custom-timer-seconds').value = savedCustomTimer.seconds || 0;
+    }
+
+    teacherToolsBtn.addEventListener('click', () => {
+      prepareModal();
+      openModal();
+    });
+
+    // Save custom timer length
+    document.getElementById('save-custom-timer-btn').addEventListener('click', () => {
+      let min = parseInt(document.getElementById('custom-timer-minutes').value) || 0;
+      let sec = parseInt(document.getElementById('custom-timer-seconds').value) || 0;
+      min = Math.max(0, Math.min(59, min));
+      sec = Math.max(0, Math.min(59, sec));
+      customTimerLength = {minutes: min, seconds: sec};
+      saveCustomTimerLength(customTimerLength);
+      alert("Custom visual timer length saved.");
+    });
+
+    // Update bottom content height on window resize and resizer drag
+    const topBar = document.getElementById('top-bar');
+    const bottomContent = document.getElementById('bottom-content');
+    const resizer = document.getElementById('resizer');
+    let isResizing = false;
+    let startY = 0;
+    let startHeight = 0;
+
+    function updateLayoutHeights(newTopHeightPx) {
+      // Set top bar height and adjust bottom content top offset
+      const vhTotal = window.innerHeight;
+      const minTop = 60;  // px minimal top bar height
+      const maxTop = vhTotal - 100;
+      const topHeight = Math.min(maxTop, Math.max(minTop, newTopHeightPx));
+      topBar.style.height = topHeight + 'px';
+      bottomContent.style.top = topHeight + 'px';
+      resizer.style.top = topHeight + 'px';
+    }
+    resizer.addEventListener('mousedown', (e) => {
+      isResizing = true;
+      startY = e.clientY;
+      startHeight = topBar.getBoundingClientRect().height;
+      document.body.style.cursor = 'ns-resize';
+    });
+    window.addEventListener('mouseup', () => {
+      if (isResizing) {
+        isResizing = false;
+        document.body.style.cursor = '';
       }
     });
-  });
+    window.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+      const dy = e.clientY - startY;
+      const newHeight = startHeight + dy;
+      updateLayoutHeights(newHeight);
+    });
 
-  updateVisualTimerDisplay();
-
-  dragBar.addEventListener('mousedown', e => {
-    isDragging = true;
-    document.body.style.cursor = 'row-resize';
-    e.preventDefault();
-  });
-  document.addEventListener('mouseup', e => {
-    if (isDragging) {
-      isDragging = false;
-      document.body.style.cursor = 'default';
+    // Initialize layout heights
+    function initLayout() {
+      updateLayoutHeights(topBar.getBoundingClientRect().height);
     }
-  });
-  document.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    let newHeight = e.clientY;
-    const minHeight = 80;
-    const maxHeight = window.innerHeight - 100;
-    if (newHeight < minHeight) newHeight = minHeight;
-    if (newHeight > maxHeight) newHeight = maxHeight;
-    topPanel.style.height = newHeight + 'px';
-  });
+
+    // Timer update interval for center countdown bar
+    setInterval(updateCenterCountdownBar, 1000);
+
+    // Initialize saved data and layout
+    function init() {
+      loadOrDefaultSchedules();
+      loadOrDefaultActiveSchedule();
+      customTimerLength = loadCustomTimerLength();
+      initLayout();
+    }
+
+    window.addEventListener('load', () => {
+      init();
+    });
+
+    // Responsive resizing of countdown bar width (auto width)
+    function resizeCountdownBar() {
+      const bar = document.getElementById('center-countdown-bar');
+      // max 80vw, min 260px, width auto based on text
+      // We keep center alignment so width depends on text length + padding
+      // Limit with max-width in CSS
+    }
+    window.addEventListener("resize", resizeCountdownBar);
+
+  })();
 </script>
+
 </body>
 </html>
