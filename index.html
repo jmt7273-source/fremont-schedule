@@ -709,16 +709,32 @@ const alarmSound = document.getElementById('alarm-sound');
       closeModal();
     });
 
-    // Save button saves schedules and active schedule key
-    saveSchedulesBtn.addEventListener('click', () => {
-      saveScheduleInputs();
-      saveSchedulesToStorage(loadedSchedules);
-      // Save active schedule key from dropdown
-      activeScheduleKey = scheduleSelect.value || null;
-      saveActiveScheduleKey(activeScheduleKey);
-      alert("Schedules saved!");
-      closeModal();
+    saveSchedulesBtn.addEventListener('click', (e) => {
+  e.preventDefault?.(); // Prevent form submission or page reload if applicable
+
+  // Manually read all input fields values again for each schedule
+  for (const key in loadedSchedules) {
+    loadedSchedules[key].forEach((period, idx) => {
+      const startInput = document.getElementById(`${key}-period-${idx}-start`);
+      const endInput = document.getElementById(`${key}-period-${idx}-end`);
+      if (startInput && endInput) {
+        period.start = startInput.value.trim();
+        period.end = endInput.value.trim();
+      }
     });
+  }
+
+  // Save updated schedules to localStorage
+  localStorage.setItem('schedules', JSON.stringify(loadedSchedules));
+
+  // Save active schedule key from dropdown
+  activeScheduleKey = scheduleSelect.value || null;
+  localStorage.setItem('activeScheduleKey', activeScheduleKey);
+
+  alert("Schedules saved!");
+  closeModal();
+});
+
 
     // Schedule select dropdown changes override schedule display
     scheduleSelect.addEventListener('change', () => {
