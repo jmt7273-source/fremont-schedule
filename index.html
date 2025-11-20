@@ -88,27 +88,6 @@
     border-radius: 4px;
     border: none;
   }
-  input#canva-embed-url {
-    width: 100%;
-    padding: 6px 8px;
-    box-sizing: border-box;
-    margin-top: 4px;
-    border-radius: 4px;
-    border: none;
-  }
-  button#apply-canva-embed {
-    margin-top: 6px;
-    width: 100%;
-    padding: 8px 12px;
-    border-radius: 4px;
-    background-color: #666;
-    border: none;
-    color: white;
-    cursor: pointer;
-  }
-  button#apply-canva-embed:hover {
-    background-color: #888;
-  }
   table {
     border-collapse: collapse;
     width: 100%;
@@ -154,12 +133,6 @@
           <input type="number" id="custom-minutes" min="0" max="59" placeholder="mm" aria-label="Custom Timer Minutes" /> :
           <input type="number" id="custom-seconds" min="0" max="59" placeholder="ss" aria-label="Custom Timer Seconds"/>
           <button id="set-custom-timer">Set Custom Timer</button>
-
-          <hr style="margin: 14px 0; border-color: #555;" />
-
-          <label for="canva-embed-url">Canva Public Embed URL:</label>
-          <input type="text" id="canva-embed-url" placeholder="Paste Canva public embed URL here" aria-label="Canva public embed URL" />
-          <button id="apply-canva-embed">Apply Canva Embed Link</button>
         </div>
       </div>
 
@@ -284,18 +257,6 @@
   // Audio element for alarm
   const timerAlarm = document.getElementById('timer-alarm');
 
-  // Canva embed elements
-  const canvaEmbedInput = document.getElementById('canva-embed-url');
-  const applyCanvaButton = document.getElementById('apply-canva-embed');
-  const canvaIframe = document.querySelector('#bottom-panel iframe');
-
-  // Load saved Canva embed link on page load and set iframe src and input value
-  const savedCanvaURL = localStorage.getItem('canvaEmbedURL');
-  if (savedCanvaURL) {
-    canvaIframe.src = savedCanvaURL;
-    canvaEmbedInput.value = savedCanvaURL;
-  }
-
   const container = document.getElementById('container');
   const topPanel = document.getElementById('top-panel');
   const dragBar = document.getElementById('drag-bar');
@@ -393,21 +354,6 @@
     customTimerSeconds = m * 60 + s;
     localStorage.setItem('customTimerSeconds', customTimerSeconds);
     alert(`Custom timer set to ${formatTimeMMSS(customTimerSeconds)}.`);
-  });
-
-  applyCanvaButton.addEventListener('click', () => {
-    const url = canvaEmbedInput.value.trim();
-    if (url) {
-      if (!url.startsWith('https://') || !url.includes('canva.com')) {
-        alert('Please enter a valid Canva public embed URL starting with https://');
-        return;
-      }
-      canvaIframe.src = url;
-      localStorage.setItem('canvaEmbedURL', url);
-      alert('Canva embed updated!');
-    } else {
-      alert('Please paste a Canva public embed URL first');
-    }
   });
 
   buildScheduleEditForm();
