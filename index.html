@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Class Timer & Tools</title>
+<style>
+  html, body {
+    margin: 0; height: 100%; font-family: Arial, sans-serif;
+  }
+  #container {
+    display: flex; flex-direction: column; height: 100vh; user-select: none;
+  }
+  #top-panel {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #222; color: white; height: 20vh; min-height: 80px; padding: 0 10px;
+  }
+  #teacher-tools {
+    position: relative;
+  }
+  #teacher-button {
+    background: #444; border: none; color: white; padding: 6px 10px; cursor: pointer;
+  }
+  #teacher-menu {
+    display: none;
+    position: absolute; top: 28px; left: 0; background: #333; border: 1px solid #555;
+    color: white; padding: 10px; width: 320px; max-height: 75vh; overflow-y: auto;
+    z-index: 1000;
+  }
+  #teacher-menu.show {
+    display: block;
+  }
+  #countdown-bar-container {
+    flex: 1; max-width: 600px; margin: 0 20px; display: flex; flex-direction: column; align-items: center;
+  }
+  #countdown-bar {
+    width: 100%; background: green; color: white;
+    font-weight: bold; font-size: 1.5em; text-align: center;
+    padding: 8px 0; border-radius: 6px;
+    transition: background 0.3s ease;
+    user-select: none;
+  }
+  #countdown-bar.flashing {
+    animation: flashRed 1s infinite;
+  }
+  @keyframes flashRed {
+    0%, 100% { background-color: red; }
+    50% { background-color: darkred; }
+  }
+  #next-class-timer {
+    font-size: 0.9em; margin-top: 4px; color: white;
+  }
+  #visual-timer {
+    display: flex; flex-direction: column; align-items: center;
+    user-select: none;
+  }
+  #visual-display {
+    background: #444; border-radius: 6px; padding: 10px 20px;
+    font-size: 1.8em; font-weight: bold; color: white; user-select: text;
+    min-width: 90px; text-align: center;
+  }
+  #visual-controls button {
+    margin-top: 8px; margin-right: 6px;
+    background: #666; border: none; border-radius: 4px; color: white;
+    padding: 6px 12px; cursor: pointer;
+  }
+  #visual-controls button:hover {
+    background: #888;
+  }
+  #drag-bar {
+    height: 6px; background: #555; cursor: row-resize;
+  }
+  #bottom-panel {
+    flex: 1; background: #111; overflow: hidden;
+  }
+  #bottom-panel iframe {
+    border: none; width: 100%; height: 100%;
+  }
+  label {
+    font-weight: bold;
+    margin-top: 8px;
+    display: block;
+  }
+  input[type="text"], input[type="number"] {
+    width: 60px;
+    padding: 3px 5px;
+    margin: 2px 6px 2px 0;
+    border-radius: 4px;
+    border: none;
+  }
+  input#canva-embed-url {
+    width: 100%;
+    padding: 6px 8px;
+    box-sizing: border-box;
+    margin-top: 4px;
+    border-radius: 4px;
+    border: none;
+  }
+  button#apply-canva-embed {
+    margin-top: 6px;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: #666;
+    border: none;
+    color: white;
+    cursor: pointer;
+  }
+  button#apply-canva-embed:hover {
+    background-color: #888;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  th, td {
+    border: 1px solid #555;
+    text-align: center;
+    padding: 4px 6px;
+  }
+  select {
+    margin-bottom: 10px;
+    width: 100%;
+    padding: 6px;
+    border-radius: 4px;
+    border: none;
+  }
+</style>
+</head>
+<body>
+  <div id="container">
+    <div id="top-panel">
+      <div id="teacher-tools">
+        <button id="teacher-button" aria-haspopup="true" aria-expanded="false">Teacher Tools ▾</button>
+        <div id="teacher-menu" role="menu" aria-label="Teacher Tools Menu">
+          <label for="schedule-select">Select Schedule:</label>
+          <select id="schedule-select" aria-describedby="schedule-desc">
+            <option value="auto">Auto (Day-based)</option>
+            <option value="regular">Regular Day</option>
+            <option value="tuesday">Tuesday PD Schedule</option>
+            <option value="minimum">Minimum Day</option>
+            <option value="shortened">Shortened Day</option>
+          </select>
+
+          <div id="schedules-edit">
+            <!-- Dynamic schedule edit form injected here -->
+          </div>
+
+          <button id="save-schedules">Save Schedule Times</button>
+
+          <hr style="margin: 14px 0; border-color: #555;" />
+
+          <label>Visual Timer Custom Length:</label>
+          <input type="number" id="custom-minutes" min="0" max="59" placeholder="mm" aria-label="Custom Timer Minutes" /> :
+          <input type="number" id="custom-seconds" min="0" max="59" placeholder="ss" aria-label="Custom Timer Seconds"/>
+          <button id="set-custom-timer">Set Custom Timer</button>
+
+          <hr style="margin: 14px 0; border-color: #555;" />
+
+          <label for="canva-embed-url">Canva Public Embed URL:</label>
+          <input type="text" id="canva-embed-url" placeholder="Paste Canva public embed URL here" aria-label="Canva public embed URL" />
+          <button id="apply-canva-embed">Apply Canva Embed Link</button>
+        </div>
+      </div>
+
+      <div id="countdown-bar-container" aria-live="polite" aria-atomic="true">
+        <div id="countdown-bar">Loading schedule...</div>
+        <div id="next-class-timer"></div>
+      </div>
+
+      <div id="visual-timer" role="timer" aria-live="assertive" aria-atomic="true" aria-label="Visual Timer">
+        <div id="visual-display">00:00</div>
+        <div id="visual-controls">
+          <button data-minutes="1">1 min</button>
+          <button data-minutes="5">5 min</button>
+          <button data-minutes="10">10 min</button>
+          <button id="custom-timer-btn">Custom</button>
+        </div>
+      </div>
+    </div>
+    <div id="drag-bar" tabindex="0" aria-label="Resize top panel"></div>
+    <div id="bottom-panel">
+      <iframe
+        src="https://www.canva.com/design/DAG4mPMfK-c/boRs9fOoR8SB-jmYFFAsFQ/view"
+        allowfullscreen
+        loading="lazy"
+        title="Canva Presentation Embed">
+      </iframe>
+    </div>
+  </div>
+
+  <audio id="timer-alarm" src="ringtone.mp3" preload="auto"></audio>
+
+<script>
+  // Utility for parsing and formatting times
+  function parse12hTimeToDate(tstr) {
+    if (!tstr) return null;
+    const match = tstr.match(/^(\d{1,2}):(\d{2})\s*([AP]M)$/i);
+    if (!match) return null;
+    let hr = +match[1];
+    const mn = +match[2];
+    const mer = match[3].toUpperCase();
+    if (mer === 'PM' && hr !== 12) hr += 12;
+    if (mer === 'AM' && hr === 12) hr = 0;
+    const d = new Date();
+    d.setHours(hr, mn, 0, 0);
+    return d;
+  }
+  function formatTimeMMSS(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  }
+
+  let schedules = {
+    regular: {
+      'Period 1': {start: '8:00 AM', end: '8:50 AM'},
+      'Period 2': {start: '8:55 AM', end: '9:45 AM'},
+      'Period 3': {start: '9:50 AM', end: '10:40 AM'},
+      'Lunch':    {start: '10:40 AM', end: '11:10 AM'},
+      'Period 4': {start: '11:15 AM', end: '12:05 PM'},
+      'Period 5': {start: '12:10 PM', end: '1:00 PM'},
+      'Period 6': {start: '1:05 PM', end: '1:55 PM'}
+    },
+    tuesday: {
+      'Period 1': {start: '8:30 AM', end: '9:10 AM'},
+      'Period 2': {start: '9:15 AM', end: '9:55 AM'},
+      'Period 3': {start: '10:00 AM', end: '10:40 AM'},
+      'Lunch':    {start: '10:40 AM', end: '11:10 AM'},
+      'Period 4': {start: '11:15 AM', end: '11:55 AM'},
+      'Period 5': {start: '12:00 PM', end: '12:40 PM'},
+      'Period 6': {start: '12:45 PM', end: '1:25 PM'}
+    },
+    minimum: {
+      'Period 1': {start: '8:00 AM', end: '8:30 AM'},
+      'Period 2': {start: '8:35 AM', end: '9:05 AM'},
+      'Period 3': {start: '9:10 AM', end: '9:40 AM'},
+      'Lunch':    {start: '9:40 AM', end: '10:00 AM'},
+      'Period 4': {start: '10:05 AM', end: '10:35 AM'},
+      'Period 5': {start: '10:40 AM', end: '11:10 AM'},
+      'Period 6': {start: '11:15 AM', end: '11:45 AM'}
+    },
+    shortened: {
+      'Period 1': {start: '8:45 AM', end: '9:15 AM'},
+      'Period 2': {start: '9:20 AM', end: '9:50 AM'},
+      'Period 3': {start: '9:55 AM', end: '10:25 AM'},
+      'Lunch':    {start: '10:25 AM', end: '10:40 AM'},
+      'Period 4': {start: '10:45 AM', end: '11:15 AM'},
+      'Period 5': {start: '11:20 AM', end: '11:50 AM'},
+      'Period 6': {start: '11:55 AM', end: '12:25 PM'}
+    }
+  };
+
+  const savedSchedules = localStorage.getItem('customSchedules');
+  if (savedSchedules) {
+    try {
+      const saved = JSON.parse(savedSchedules);
+      for (const sch in saved) {
+        if (schedules[sch]) {
+          schedules[sch] = saved[sch];
+        }
+      }
+    } catch {}
+  }
+
+  let selectedScheduleKey = localStorage.getItem('selectedSchedule') || 'auto';
+  let customTimerSeconds = parseInt(localStorage.getItem('customTimerSeconds')) || 60;
+
+  const teacherButton = document.getElementById('teacher-button');
+  const teacherMenu = document.getElementById('teacher-menu');
+  const scheduleSelect = document.getElementById('schedule-select');
+  const schedulesEditContainer = document.getElementById('schedules-edit');
+  const saveSchedulesButton = document.getElementById('save-schedules');
+
+  const countdownBar = document.getElementById('countdown-bar');
+  const nextClassTimer = document.getElementById('next-class-timer');
+
+  const visualDisplay = document.getElementById('visual-display');
+  const visualControlButtons = document.querySelectorAll('#visual-controls button');
+  const customMinutesInput = document.getElementById('custom-minutes');
+  const customSecondsInput = document.getElementById('custom-seconds');
+  const setCustomTimerButton = document.getElementById('set-custom-timer');
+
+  // Audio element for alarm
+  const timerAlarm = document.getElementById('timer-alarm');
+
+  // Canva embed elements
+  const canvaEmbedInput = document.getElementById('canva-embed-url');
+  const applyCanvaButton = document.getElementById('apply-canva-embed');
+  const canvaIframe = document.querySelector('#bottom-panel iframe');
+
+  // Load saved Canva embed link on page load and set iframe src and input value
+  const savedCanvaURL = localStorage.getItem('canvaEmbedURL');
+  if (savedCanvaURL) {
+    canvaIframe.src = savedCanvaURL;
+    canvaEmbedInput.value = savedCanvaURL;
+  }
+
+  const container = document.getElementById('container');
+  const topPanel = document.getElementById('top-panel');
+  const dragBar = document.getElementById('drag-bar');
+  const bottomPanel = document.getElementById('bottom-panel');
+  let isDragging = false;
+
+  function buildScheduleEditForm() {
+    schedulesEditContainer.innerHTML = '';
+    for (const [key, periods] of Object.entries(schedules)) {
+      const schTitle = document.createElement('h4');
+      schTitle.textContent = key.charAt(0).toUpperCase() + key.slice(1) + " Schedule";
+      schedulesEditContainer.appendChild(schTitle);
+
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      thead.innerHTML = '<tr><th>Period</th><th>Start (12h)</th><th>End (12h)</th></tr>';
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+
+      for (const [periodName, times] of Object.entries(periods)) {
+        const tr = document.createElement('tr');
+
+        const tdName = document.createElement('td');
+        tdName.textContent = periodName;
+        tr.appendChild(tdName);
+
+        const tdStart = document.createElement('td');
+        const startInput = document.createElement('input');
+        startInput.type = 'text';
+        startInput.value = times.start;
+        startInput.dataset.schedule = key;
+        startInput.dataset.period = periodName;
+        startInput.classList.add('time-input');
+        tdStart.appendChild(startInput);
+        tr.appendChild(tdStart);
+
+        const tdEnd = document.createElement('td');
+        const endInput = document.createElement('input');
+        endInput.type = 'text';
+        endInput.value = times.end;
+        endInput.dataset.schedule = key;
+        endInput.dataset.period = periodName;
+        endInput.classList.add('time-input');
+        tdEnd.appendChild(endInput);
+        tr.appendChild(tdEnd);
+
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+      schedulesEditContainer.appendChild(table);
+    }
+  }
+
+  function saveSchedulesFromForm() {
+    const inputs = schedulesEditContainer.querySelectorAll('input.time-input');
+    inputs.forEach(input => {
+      const sch = input.dataset.schedule;
+      const period = input.dataset.period;
+      if (schedules[sch] && schedules[sch][period]) {
+        if (input === null) return;
+        if (input.value) {
+          if (input.parentElement.cellIndex === 1) {
+            schedules[sch][period].start = input.value.trim();
+          } else if (input.parentElement.cellIndex === 2) {
+            schedules[sch][period].end = input.value.trim();
+          }
+        }
+      }
+    });
+    localStorage.setItem('customSchedules', JSON.stringify(schedules));
+  }
+
+  scheduleSelect.value = selectedScheduleKey;
+  scheduleSelect.addEventListener('change', () => {
+    selectedScheduleKey = scheduleSelect.value;
+    localStorage.setItem('selectedSchedule', selectedScheduleKey);
+  });
+
+  teacherButton.addEventListener('click', () => {
+    const isShown = teacherMenu.classList.toggle('show');
+    teacherButton.setAttribute('aria-expanded', isShown);
+  });
+
+  saveSchedulesButton.addEventListener('click', () => {
+    saveSchedulesFromForm();
+    alert('Schedules saved.');
+  });
+
+  setCustomTimerButton.addEventListener('click', () => {
+    let m = parseInt(customMinutesInput.value);
+    let s = parseInt(customSecondsInput.value);
+    if (isNaN(m) || m < 0) m = 0;
+    if (isNaN(s) || s < 0 || s > 59) s = 0;
+    customTimerSeconds = m * 60 + s;
+    localStorage.setItem('customTimerSeconds', customTimerSeconds);
+    alert(`Custom timer set to ${formatTimeMMSS(customTimerSeconds)}.`);
+  });
+
+  applyCanvaButton.addEventListener('click', () => {
+    const url = canvaEmbedInput.value.trim();
+    if (url) {
+      if (!url.startsWith('https://') || !url.includes('canva.com')) {
+        alert('Please enter a valid Canva public embed URL starting with https://');
+        return;
+      }
+      canvaIframe.src = url;
+      localStorage.setItem('canvaEmbedURL', url);
+      alert('Canva embed updated!');
+    } else {
+      alert('Please paste a Canva public embed URL first');
+    }
+  });
+
+  buildScheduleEditForm();
+
+  function getActiveSchedule() {
+    if (selectedScheduleKey === 'auto') {
+      const todayDow = new Date().getDay();
+      if (todayDow === 2) return 'tuesday';
+      return 'regular';
+    }
+    return selectedScheduleKey;
+  }
+
+  function getCurrentPeriodAndNext(schedule, now) {
+    let currentPeriod = null;
+    let nextPeriod = null;
+
+    const periods = Object.entries(schedule);
+    for (let i = 0; i < periods.length; i++) {
+      const [periodName, times] = periods[i];
+      const startD = parse12hTimeToDate(times.start);
+      const endD = parse12hTimeToDate(times.end);
+      if (!startD || !endD) continue;
+      if (now >= startD && now <= endD) {
+        currentPeriod = {name: periodName, start: startD, end: endD};
+        if (i + 1 < periods.length) {
+          const nextT = periods[i+1][1];
+          nextPeriod = {name: periods[i+1][0], start: parse12hTimeToDate(nextT.start), end: parse12hTimeToDate(nextT.end)};
+        }
+        break;
+      }
+      if (now < startD) {
+        nextPeriod = {name: periodName, start: startD, end: endD};
+        break;
+      }
+    }
+    return {currentPeriod, nextPeriod};
+  }
+
+  let flashIntervalId = null;
+  function updateCountdownBar() {
+    const now = new Date();
+    const activeScheduleKey = getActiveSchedule();
+    const schedule = schedules[activeScheduleKey];
+    if (!schedule) {
+      countdownBar.textContent = 'No schedule selected';
+      nextClassTimer.textContent = '';
+      countdownBar.style.background = 'green';
+      countdownBar.classList.remove('flashing');
+      return;
+    }
+
+    const {currentPeriod, nextPeriod} = getCurrentPeriodAndNext(schedule, now);
+    if (!currentPeriod) {
+      countdownBar.textContent = 'No current period';
+      nextClassTimer.textContent = '';
+      countdownBar.style.background = 'green';
+      countdownBar.classList.remove('flashing');
+      return;
+    }
+
+    const msLeft = currentPeriod.end - now;
+    const secLeft = Math.floor(msLeft / 1000);
+    const periodLengthMs = currentPeriod.end - currentPeriod.start;
+    const elapsedMs = now - currentPeriod.start;
+
+    const fifteenMinutesMs = 15 * 60 * 1000;
+    const flashing = elapsedMs <= fifteenMinutesMs || msLeft <= fifteenMinutesMs;
+
+    let barText;
+    if (elapsedMs <= fifteenMinutesMs) {
+      const untilPassesMs = fifteenMinutesMs - elapsedMs;
+      const untilPassesSec = Math.floor(untilPassesMs / 1000);
+      barText = `No Restroom or Passes Right Now – ${formatTimeMMSS(untilPassesSec)}`;
+    } else if (msLeft <= fifteenMinutesMs) {
+      barText = `No Restroom or Passes Right Now – ${formatTimeMMSS(secLeft)}`;
+    } else {
+      barText = `${currentPeriod.name}: ${formatTimeMMSS(secLeft)}`;
+    }
+
+    countdownBar.textContent = barText;
+
+    if (flashing) {
+      countdownBar.classList.add('flashing');
+    } else {
+      countdownBar.classList.remove('flashing');
+      countdownBar.style.backgroundColor = 'green';
+    }
+
+    if (nextPeriod) {
+      const msUntilNextStart = nextPeriod.start - now;
+      const secUntilNextStart = Math.max(0, Math.floor(msUntilNextStart / 1000));
+      nextClassTimer.textContent = `Minutes left until Next Class: ${formatTimeMMSS(secUntilNextStart)}`;
+    } else {
+      nextClassTimer.textContent = 'No next class period';
+    }
+  }
+
+  setInterval(updateCountdownBar, 1000);
+  updateCountdownBar();
+
+  let visualTimerSeconds = 0;
+  let visualTimerInterval = null;
+
+  function setVisualTimer(seconds) {
+    if (visualTimerInterval) clearInterval(visualTimerInterval);
+    visualTimerSeconds = seconds;
+    updateVisualTimerDisplay();
+    if (seconds > 0) {
+      visualTimerInterval = setInterval(() => {
+        visualTimerSeconds--;
+        updateVisualTimerDisplay();
+        if (visualTimerSeconds <= 0) {
+          clearInterval(visualTimerInterval);
+          visualTimerInterval = null;
+          timerAlarm.play().catch(() => {
+            console.warn('Audio play was prevented (user interaction might be required).');
+          });
+        }
+      }, 1000);
+    }
+  }
+
+  function updateVisualTimerDisplay() {
+    visualDisplay.textContent = formatTimeMMSS(visualTimerSeconds);
+  }
+
+  visualControlButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.id === 'custom-timer-btn') {
+        setVisualTimer(customTimerSeconds);
+      } else {
+        const min = parseInt(btn.dataset.minutes) || 0;
+        setVisualTimer(min * 60);
+      }
+    });
+  });
+
+  updateVisualTimerDisplay();
+
+  dragBar.addEventListener('mousedown', e => {
+    isDragging = true;
+    document.body.style.cursor = 'row-resize';
+    e.preventDefault();
+  });
+  document.addEventListener('mouseup', e => {
+    if (isDragging) {
+      isDragging = false;
+      document.body.style.cursor = 'default';
+    }
+  });
+  document.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    let newHeight = e.clientY;
+    const minHeight = 80;
+    const maxHeight = window.innerHeight - 100;
+    if (newHeight < minHeight) newHeight = minHeight;
+    if (newHeight > maxHeight) newHeight = maxHeight;
+    topPanel.style.height = newHeight + 'px';
+  });
+</script>
+</body>
+</html>
