@@ -283,6 +283,7 @@
   <a id="canva-attribution" href="https://www.canva.com/design/DAG4mPMfK-c/boRs9fOoR8SB-jmYFFAsFQ/view?utm_content=DAG4mPMfK-c&utm_campaign=designshare&utm_medium=embeds&utm_source=link" target="_blank" rel="noopener noreferrer">
     Timer Agendas by JOSE TORRES
   </a>
+<audio id="alarm-sound" src="ringtone.mp3" preload="auto"></audio>
 </div>
 
 <!-- Teacher Tools Modal -->
@@ -647,6 +648,14 @@
         clearInterval(visualTimerInterval);
         visualTimerInterval = null;
         visualTimerDisplay.textContent = "00:00";
+
+const alarmSound = document.getElementById('alarm-sound');
+    if (alarmSound) {
+      alarmSound.currentTime = 0; // rewind to start
+      alarmSound.play().catch(() => {
+        // Audio play might fail if no user interaction yet; ignore error
+      });
+    }
         return;
       }
       const diffMs = visualTimerEndTime - now;
